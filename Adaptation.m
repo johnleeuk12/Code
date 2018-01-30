@@ -792,23 +792,49 @@ responsetime = responsetime*1e-3;
 % responsetime(12,:) = []; %for SyncN neurons, neuron 12 doesnt react to
 % stim
 
-edges = 0:5:max(responsetime);
-figure
+% edges = 0:5:max(responsetime);
+% figure
+% for n = 1:nn
+%     [h{n},edges] = histcounts(responsetime(n,:),edges);
+%     subplot(15,2,n)
+%     histogram(responsetime(n,:),edges)
+%     stdNeuron(n) = std(responsetime(n,:),1);
+% end
+
+
+ICI_list= [250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]*1e-3;
+
 for n = 1:nn
-    [h{n},edges] = histcounts(responsetime(n,:),edges);
-    subplot(15,2,n)
-    histogram(responsetime(n,:),edges)
-    stdNeuron(n) = std(responsetime(n,:),1);
-end
-
-
-
-for n = 1:nn
-    for f = 1:12
+    for f = 1:8
         firsthalf{n,f} = output.ind_spike_time{n,f}(find(responsetime(n,f) <= output.ind_spike_time{n,f} & output.ind_spike_time{n,f} <= 0.275));
+        if ~isempty(firsthalf{n,f})
+        firsthalf{n,f} = mod(firsthalf{n,f},ICI_list(f));
+        end
         secondhalf{n,f} = output.ind_spike_time{n,f}(find(0.275 < output.ind_spike_time{n,f} & output.ind_spike_time{n,f} < 0.550));
+        if ~isempty(secondhalf{n,f})
+        secondhalf{n,f} = mod(secondhalf{n,f},ICI_list(f));
+        end
     end
 end
+
+% perihistogram
+edges = 0:0.001:0.25;
+for n = 1:nn
+    figure('position',[800 100 800 900])
+    for f = 1:12
+        subplot(12,1,f)
+        histogram(firsthalf{n,f},edges)
+        hold on 
+        histogram(secondhalf{n,f},edges)
+        
+    end
+    pause
+end
+        
+    
+
+
+
 
 
 % figure 
