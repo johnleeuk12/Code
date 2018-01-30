@@ -805,8 +805,8 @@ end
 
 for n = 1:nn
     for f = 1:12
-        firsthalf{n,f} = output.ind_spike_time{n,f}(find(responsetime(n,f) <= output.ind_spike_time{n,f} & output.ind_spike_time{n,f} <= 0.275));
-        secondhalf{n,f} = output.ind_spike_time{n,f}(find(0.275 < output.ind_spike_time{n,f} & output.ind_spike_time{n,f} < 0.550));
+        firsthalf{n,f} = find(responsetime(n,f) <= output.ind_spike_time{n,f} <= 0.275);
+        secondhalf{n,f} = find(responsetime(n,f) <= output.ind_spike_time{n,f} < 0.550);
     end
 end
 

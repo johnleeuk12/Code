@@ -101,6 +101,7 @@ for ind =2:4% 2:4
                     for i = indstim.'
                         if spiketable(i,2) == r && spiketable(i,3)== 1 && spiketable(i,4) > 0 % channel 1
                             spikes1 = [spikes1 (spiketable(i,4)*1e-6 - PREstim_duration)]; % spikes rounded up to 0.1ms cad 100microseconds. converted to seconds
+                                                                                           % spike time minus Prestim duration. thus this is spike time after stim onset 
                         end
                         if spiketable(i,2) == r && spiketable(i,3)== 2 && spiketable(i,4) > 0 % channel 1
                             spikes2 = [spikes2 (spiketable(i,4)*1e-6 - PREstim_duration)];
