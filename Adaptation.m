@@ -743,8 +743,8 @@ corr(output.VStime{1, 10}(:,1),output.VStime{1, 10}(:,2))
 
 %% 01/25/2018 Spike latency calculation, see Bendor 2008
 clear all
-load('SyncN_new.mat');
-% load('SyncP_new.mat');
+% load('SyncN_new.mat');
+load('SyncP_new.mat');
 
 
 nn = size(output.mean_neuron_spont{1},1);
@@ -805,33 +805,43 @@ responsetime = responsetime*1e-3;
 ICI_list= [250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]*1e-3;
 
 for n = 1:nn
-    for f = 1:8
+    for f = 1:12
         firsthalf{n,f} = output.ind_spike_time{n,f}(find(responsetime(n,f) <= output.ind_spike_time{n,f} & output.ind_spike_time{n,f} <= 0.275));
         if ~isempty(firsthalf{n,f})
-        firsthalf{n,f} = mod(firsthalf{n,f},ICI_list(f));
+        firsthalf{n,f} = 2*pi*mod(firsthalf{n,f},ICI_list(f))/ICI_list(f);
         end
         secondhalf{n,f} = output.ind_spike_time{n,f}(find(0.275 < output.ind_spike_time{n,f} & output.ind_spike_time{n,f} < 0.550));
         if ~isempty(secondhalf{n,f})
-        secondhalf{n,f} = mod(secondhalf{n,f},ICI_list(f));
+        secondhalf{n,f} = 2*pi*mod(secondhalf{n,f},ICI_list(f))/ICI_list(f);
         end
     end
 end
 
 % perihistogram
-edges = 0:0.001:0.25;
+% edges = 0:0.001:0.25;
+edges = 0: pi/32: 2*pi;
 for n = 1:nn
     figure('position',[800 100 800 900])
     for f = 1:12
         subplot(12,1,f)
-        histogram(firsthalf{n,f},edges)
-        hold on 
-        histogram(secondhalf{n,f},edges)
+        
+        histogram(firsthalf{n,f},edges) %Blue
+%         pause
+        hold on
+        histogram(secondhalf{n,f},edges) %Orange
+        axis([0,2*pi,0,20])
+        if f <12
+            set(gca,'XTick',[]);
+        else
+            xticks([0 0.5*pi pi 1.5*pi 2*pi])
+            xticklabels({'0' '0.5\pi' '\pi' '1.5\pi' '2\pi'})
+        end
         
     end
     pause
 end
-        
-    
+
+
 
 
 

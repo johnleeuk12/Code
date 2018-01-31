@@ -6,8 +6,8 @@ function Out = Conductance_LIF()
 global ICI_list
 ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]; % [20.8333 25 31.25 41.6667 62.5 125];%[20 30 40 50 60 80 100]; %[250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
 IE_delay = 5; %ms
-E_strength = 5; %:0.3:4.8; %1.5:0.3:6.; % in nS 3.5 for Sync+
-I_strength = 5*1.7; %8.5; %:0.1:1.9;
+E_strength = 4.5; %:0.3:4.8; %1.5:0.3:6.; % in nS 3.5 for Sync+
+I_strength = 8.5; %8.5; %:0.1:1.9;
 % f_DE = 0.7;
 % e = 2;%4.5;
 % i = 2;%8.5;
@@ -20,7 +20,7 @@ global pureT
 pureT = 0;
 
 global tau_pE tau_pI
-tau_pE = 0.18;
+tau_pE = 0.15;
 tau_pI = 0.10;
 pp = 0;
 % figure
@@ -30,10 +30,10 @@ global kernel_time_constant
 kernel_time_constant = 0.005;
 
 % for tau_pE = 0.15
-for f_DI = 1
+for f_DI = 0.6
     %         for kernel_time_constant = [0.005 0.010 0.020 0.040]
     %     for  f_DE = 0.7
-    for f_DE = 0.7
+    for f_DE = .9
         %             for tau_pI = 0.10:0.01:0.2
         tic
         pp = pp+1;
