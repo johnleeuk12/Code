@@ -399,10 +399,10 @@ Infos = [ones(1,100)*InfoP;InfosN;InfosNM;InfosVSP;InfosVSN;InfosVSNM;InfosISIP;
 Infomean = mean(Infos,2);
 stdmean = [];
 for i = 1:9
-    stdmean(i) = std(Infos(i,:));
+    stdmean(i) = deviation(Infos(i,:));
 end
 errorbar(Infomean,stdmean,'+','CapSize',30)
-std(ones(1,10))
+deviation(ones(1,10))
 axis([0,10,0,1.2])
 
 %%
@@ -764,7 +764,7 @@ for f = 1:12
                 +(output.mean_neuron_rates{f}(n,2*t-1)))/2 ;
             t = t+1;
         end
-        spontstd{f}(n) = std(spont{f}(n,:),1);
+        spontstd{f}(n) = deviation(spont{f}(n,:),1);
     end
 end
 
@@ -855,9 +855,54 @@ end
 
 
 
+%% Model data analysis and prediction 01/02/2018
+clear all
+load('model_datasyncP.mat')
+% load('model_datasyncN.mat')
+ICI_list= [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]*1e-3;
 
+for f = 1:11
+    firsthalf{f} = output.spiketime{f}(find(0.05 <= output.spiketime{f} & output.spiketime{f} <= 0.275));
+    if ~isempty(firsthalf{f})
+        firsthalf{f} = 2*pi*mod(firsthalf{f},ICI_list(f))/ICI_list(f);
+    end
+    secondhalf{f} = output.spiketime{f}(find(0.275 < output.spiketime{f} & output.spiketime{f} < 0.550));
+    if ~isempty(secondhalf{f})
+        secondhalf{f} = 2*pi*mod(secondhalf{f},ICI_list(f))/ICI_list(f);
+    end
+end
 
+edges = 0: pi/64: 2*pi;
 
+figure('position',[800 100 800 900])
+for f = 1:11
+    subplot(12,1,f)
+    
+    histogram(firsthalf{n,f},edges) %Blue
+    %         pause
+    hold on
+    histogram(secondhalf{n,f},edges) %Orange
+    axis([0,2*pi,0,40])
+    if f <12
+        set(gca,'XTick',[]);
+    else
+        xticks([0 0.5*pi pi 1.5*pi 2*pi])
+        xticklabels({'0' '0.5\pi' '\pi' '1.5\pi' '2\pi'})
+    end
+    
+end
+
+medians = zeros(2,11);
+deviation = zeros(2,11);
+for f = 1:11
+    [p,h,stats] = ranksum(firsthalf{f},secondhalf{f});
+    if h ==1
+    medians(1,f) = median(firsthalf{f});
+    medians(2,f) = median(secondhalf{f});
+    deviation(1,f) = std(firsthalf{f});
+    deviation(2,f) = std(secondhalf{f});
+    end
+end
 
 
 

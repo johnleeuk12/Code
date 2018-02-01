@@ -42,12 +42,14 @@ for f_DI = 0.6
         output.raster.stim = [];
         output.raster.rep = [];
         output.raster.spikes = [];
+        output.spiketime = {};
         for f = 1:length(ICI_list)
             
             out = run_model(IE_delay,E_strength,I_strength,f,f_DE,f_DI);
             output.raster.stim = [output.raster.stim out.raster.stim];
             output.raster.rep = [output.raster.rep out.raster.rep];
             output.raster.spikes = [output.raster.spikes out.raster.spikes];
+            output.spiketime{f} = out.raster.spikes;
             output.VS(f) = out.VS;
 %             output.VS_pop(f,:) = out.vector;
             output.mean_discharge_rate.mean(f) = out.discharge_rate.mean;
@@ -148,7 +150,7 @@ for f_DI = 0.6
             Hz_list = [Hz_list round(1000/ICI_list(i))];
         end
         
-        % save('model_datasyncEI.mat')
+        save('model_datasyncP.mat')
         
         test;
         % figure
@@ -203,6 +205,9 @@ for f_DI = 0.6
 end
 % test = 1;
 % pause
+
+
+% save('modeldata2.mat',UnitInfo)
 % save('modeldata_new2.mat','UnitInfo')
 % load('modeldata2.mat')
 % for n = 1:length(UnitInfo.List)
@@ -298,7 +303,7 @@ global tau_pE tau_pI
 
 %% Model (Conductance, Spikes etc)
 
-nb_rep = 30;
+nb_rep = 100;
 rate_total = [];
 Ge_total = [];
 Gi_total = [];
