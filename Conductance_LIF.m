@@ -30,10 +30,10 @@ global kernel_time_constant
 kernel_time_constant = 0.005;
 
 % for tau_pE = 0.15
-for f_DI = 0.6
+for f_DI = 1.2
     %         for kernel_time_constant = [0.005 0.010 0.020 0.040]
     %     for  f_DE = 0.7
-    for f_DE = .9
+    for f_DE = 0.9
         %             for tau_pI = 0.10:0.01:0.2
         tic
         pp = pp+1;

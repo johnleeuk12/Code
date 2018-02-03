@@ -9,9 +9,9 @@ clear all
 %% file info
 
 Sync = 1; %or 0 for Nsync
-Positive = -1; % or 1 for Negative
+Positive = 1; % or 1 for Negative
 StimType = 12; % or 20
-putfigure = 0;
+putfigure = 1;
 
 
 ICI_list1 = [2 2.5 3 5 7.5 10 12.5 15 20 25 30 35 40 45 50 55 60 65 70 75]; %ms, ICI
@@ -60,8 +60,8 @@ for ind =2:4% 2:4
     
     %% spikes, VS and raster
     %     directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
-    %             directory = ['C:\Users\John\Documents\Marmoset\' animal];
-    directory = ['C:\Users\John.Lee\OneDrive\Bendorlab\Marmoset\' animal];
+                directory = ['C:\Users\John\Documents\Marmoset\' animal];
+%     directory = ['C:\Users\John.Lee\OneDrive\Bendorlab\Marmoset\' animal];
     indxList = find([UnitInfo.Info.Stimuli_Nb] ==StimType &...
         [UnitInfo.Info.Positive] == Positive &...
         [UnitInfo.Info.Sync] == Sync &  ...
