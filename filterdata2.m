@@ -60,8 +60,8 @@ for ind =2:4% 2:4
     
     %% spikes, VS and raster
     %     directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
-                directory = ['C:\Users\John\Documents\Marmoset\' animal];
-%     directory = ['C:\Users\John.Lee\OneDrive\Bendorlab\Marmoset\' animal];
+%                 directory = ['C:\Users\John\Documents\Marmoset\' animal];
+    directory = ['C:\Users\John.Lee\OneDrive\Bendorlab\Marmoset\' animal];
     indxList = find([UnitInfo.Info.Stimuli_Nb] ==StimType &...
         [UnitInfo.Info.Positive] == Positive &...
         [UnitInfo.Info.Sync] == Sync &  ...
@@ -103,7 +103,7 @@ for ind =2:4% 2:4
                             spikes1 = [spikes1 (spiketable(i,4)*1e-6 - PREstim_duration)]; % spikes rounded up to 0.1ms cad 100microseconds. converted to seconds
                                                                                            % spike time minus Prestim duration. thus this is spike time after stim onset 
                         end
-                        if spiketable(i,2) == r && spiketable(i,3)== 2 && spiketable(i,4) > 0 % channel 1
+                        if spiketable(i,2) == r && spiketable(i,3)== 2 && spiketable(i,4) > 0 % channel 2
                             spikes2 = [spikes2 (spiketable(i,4)*1e-6 - PREstim_duration)];
                         end
                     end

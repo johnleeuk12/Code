@@ -8,114 +8,135 @@ clear all
 %% Parameters
 global ICI_list
 ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
-IE_delay = 5; %ms
-E_strength = 4.5; %nS
-I_strength = 8.5; %nS
+
  
 global tau_pE tau_pI kernel_time_constant
-tau_pE = 0.15;
-tau_pI = 0.10;
+% tau_pE = 0.10;
+% tau_pI = 0.05;
 kernel_time_constant = 0.005;
-
-
+% f_E = 0.1;
+% f_I = 0.6;
 % function output = modelneuron_output(f_E,f_I,adaptation)
-
 
 %f_I and f_E are adaptation parameters for IPSP and EPSP
 
-f = 10;
-adaptation =0; 
-f_E = 0.1;
-f_I = 0.4;
-n=0;
 
 
-output = {};
-output.raster.stim = [];
-output.raster.rep = [];
-output.raster.spikes = [];
-output.spiketime = {};
-for f = 1:length(ICI_list)
-    out = run_model(IE_delay,E_strength,I_strength,f,f_E,f_I,adaptation);
-    output.raster.stim = [output.raster.stim out.raster.stim];
-    output.raster.rep = [output.raster.rep out.raster.rep];
-    output.raster.spikes = [output.raster.spikes out.raster.spikes];
-    output.spiketime{f} = out.raster.spikes;
-    output.VS(f) = out.VS;
-    %             output.VS_pop(f,:) = out.vector;
-    output.mean_discharge_rate.mean(f) = out.discharge_rate.mean;
-    output.mean_discharge_rate.error(f)  = out.discharge_rate.error;
-    output.rate{f} = out.rate;
-    output.rate_brut{f} = out.rate_brut;
-    %             output.adaptation.E{f} = out.E_strength;
-    %             output.adaptation.I{f} = out.I_strength;
-    %             output.adaptation.E_I{f} = out.I_strength-out.E_strength;
-    %             output.adaptation.E_I{f} = output.adaptation.E_I{f}(1:end-1);
-    output.spikes_per_click{f} = out.spikes_per_click;
-    output.Fanofactor(f) = out.Fanofactor;
-    output.var_ISI(f) = out.var_ISI;
-    %                     for t = 1:length(output.adaptation.E_I{f})
-    %                         output.product{f}(t) = output.adaptation.E_I{f}(t)*output.time_period{f}.mean(t);
-    %                     end
+IE_delay = 5; %ms
+E_strength = 4.5; %nS
+I_strength = 8.5; %nS
+% f = 10;
+adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
+adaptation.I = 0;
+
+
+    n=0;
+for f_E = 0.3 %[0.1 0.2 0.3]
+    for f_I = 0.1% [0.1 :0.1 : 0.9]
+        for tau_pE =0.17 % 0.05:0.02:0.20
+            for tau_pI = 0.10 %0.05:0.02:0.20
+
+    output = {};
+    output.raster.stim = [];
+    output.raster.rep = [];
+    output.raster.spikes = [];
+    output.spiketime = {};
+    for f = 1:length(ICI_list)
+        out = run_model(IE_delay,E_strength,I_strength,f,f_E,f_I,adaptation);
+        output.raster.stim = [output.raster.stim out.raster.stim];
+        output.raster.rep = [output.raster.rep out.raster.rep];
+        output.raster.spikes = [output.raster.spikes out.raster.spikes];
+        output.spiketime{f} = out.raster.spikes;
+        output.VS(f) = out.VS;
+        %             output.VS_pop(f,:) = out.vector;
+        output.mean_discharge_rate.mean(f) = out.discharge_rate.mean;
+        output.mean_discharge_rate.error(f)  = out.discharge_rate.error;
+        output.rate{f} = out.rate;
+        output.rate_brut{f} = out.rate_brut;
+        %             output.adaptation.E{f} = out.E_strength;
+        %             output.adaptation.I{f} = out.I_strength;
+        %             output.adaptation.E_I{f} = out.I_strength-out.E_strength;
+        %             output.adaptation.E_I{f} = output.adaptation.E_I{f}(1:end-1);
+        output.spikes_per_click{f} = out.spikes_per_click;
+        output.Fanofactor(f) = out.Fanofactor;
+        output.var_ISI(f) = out.var_ISI;
+        %                     for t = 1:length(output.adaptation.E_I{f})
+        %                         output.product{f}(t) = output.adaptation.E_I{f}(t)*output.time_period{f}.mean(t);
+        %                     end
+    end
+    n= n+1;
+    disp(n)
+    UnitInfo.Info(n).Output = output;
+    UnitInfo.List(n,1) = f_E;
+    UnitInfo.List(n,2) = f_I;
+    UnitInfo.List(n,3) = tau_pE;
+    UnitInfo.List(n,4) = tau_pI;
+    UnitInfo.List(n,5) = E_strength;
+    UnitInfo.List(n,6) = I_strength;
+    
+    disp(UnitInfo.List)
+    
+    UnitInfo.Info(n).Output = output;
+    
+    new_all_mean_rate_stim = output.mean_discharge_rate.mean; %(1:end-1);
+    [RHO,PVAL] = corr(ICI_list.',new_all_mean_rate_stim.','Type','Spearman')
+    
+    UnitInfo.Info(n).Rho = RHO;
+    UnitInfo.Info(n).Pval = PVAL;
+            end
+        end
+    end
 end
-n= n+1;
-UnitInfo.Info(n).Output = output;
-UnitInfo.List(n,1) = f_E;
-UnitInfo.List(n,2) = f_I;
-UnitInfo.List(n,3) = tau_pE;
-UnitInfo.List(n,4) = tau_pI;
-UnitInfo.List(n,5) = E_strength;
-UnitInfo.List(n,6) = I_strength;
-UnitInfo.Info(n).Output = output;
 
-new_all_mean_rate_stim = output.mean_discharge_rate.mean; %(1:end-1);
-[RHO,PVAL] = corr(ICI_list.',new_all_mean_rate_stim.','Type','Spearman')
+% % save('dataaaaa2.mat','UnitInfo') 
 Hz_list = [];
 for i = 1:length(ICI_list)
     Hz_list = [Hz_list round(1000/ICI_list(i))];
 end
 
+
+figure
 cmapp = [[0.1 0.7 0.1]; [0.9 0.6 0.1]; [0 0 0]   ];%    [0.26 0.5 0.9]   ]; %; [0.9 0.3 0.26]; ];
 
 cmap = colormap(jet(length(ICI_list)+1));
-figure
 
-for p = n
-    norm_mean = [];
-    subplot(2,2,[1 3])
-    
-    hold off
-    for n =1:2:length(UnitInfo.Info(p).Output.rate)
-        plot(UnitInfo.Info(p).Output.rate{n}, 'linewidth', 1.7,'color',cmap(n+1,:),'DisplayName', ...
-            [num2str(Hz_list(n)) 'Hz'])
-        hold on
-        %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
-    end
-    axis([300,1200,0,80]);
-    legend('show')
-    title(['// f_DE = ' num2str(UnitInfo.List(p,1))...
-        '// f_DI = ' num2str(UnitInfo.List(p,2)) ...
-        '// tau_pE = ' num2str(UnitInfo.List(p,3)) ...
-        '// tau_pI = ' num2str(UnitInfo.List(p,4))])
-    set(gca, 'FontSize', 16)
+
+p = n;
+norm_mean = [];
+subplot(2,2,[1 3])
+
+hold off
+for n =1:2:length(UnitInfo.Info(p).Output.rate)
+    plot(UnitInfo.Info(p).Output.rate{n}, 'linewidth', 1.7,'color',cmap(n+1,:),'DisplayName', ...
+        [num2str(Hz_list(n)) 'Hz'])
     hold on
-    subplot(2,2,2)
-    shadedErrorBar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error,{'--','Color',cmapp(2,:)})
-    %     errorbar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error)
-    
-    
-    hold on
-    axis([0,50,-5,50]);
-    subplot(2,2,4)
-    
-    plot(Hz_list,UnitInfo.Info(p).Output.VS,'linewidth',2.0);
-    set(gca, 'FontSize', 16)
-    axis([0,50,0.5,1]);
-    %                 hold on
-    %                 pause
-    pause(0.1)
+    %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
 end
-        
+axis([300,1200,0,120]);
+legend('show')
+title(['// f_DE = ' num2str(UnitInfo.List(p,1))...
+    '// f_DI = ' num2str(UnitInfo.List(p,2)) ...
+    '// tau_pE = ' num2str(UnitInfo.List(p,3)) ...
+    '// tau_pI = ' num2str(UnitInfo.List(p,4))])
+set(gca, 'FontSize', 16)
+hold on
+subplot(2,2,2)
+shadedErrorBar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error,{'--','Color',cmapp(2,:)})
+%     errorbar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error)
+
+
+hold on
+axis([0,50,-5,50]);
+subplot(2,2,4)
+
+plot(Hz_list,UnitInfo.Info(p).Output.VS,'linewidth',2.0);
+set(gca, 'FontSize', 16)
+axis([0,50,0.5,1]);
+%                 hold on
+%                 pause
+pause(0.1)
+
+
 function out = run_model(IE_delay,E_strength,I_strength,f,f_E,f_I,adaptation)
 
 global ICI_list kernel_time_constant tau_pE tau_pI
@@ -144,9 +165,10 @@ stimulus_input_length=length(0:step:(stimulus_duration));
 ipi=round(1/(freq*step)); %ipi=interpulse interval
 freq2=1/(step*ipi);
 
+
 %% Modeling Conductance and adaptation.
 
-nb_rep = 30;
+nb_rep = 20;
 E_str(1) = E_strength;
 I_str(1) = I_strength;
 E_strength_mean = [];
@@ -159,12 +181,17 @@ raster.stim=[];  raster.rep=[];  raster.spikes=[];
 
 %adaptation parameters
 
-if adaptation ==1
+if adaptation.E ==1
     f_DE = 1-f_E;
-    f_DI = 1-f_I;
-    P_0 = 1;
+    P_0E = 1;
 else
-    P_0 = 0.3;
+    P_0E = 0.3;
+end
+if adaptation.I ==1
+    f_DI = 1-f_I;
+    P_0I = 1;
+else
+    P_0I = 0.5;
 end
 
 
@@ -174,29 +201,33 @@ for r = 1:nb_rep
     
     for j=1:10  %10 jitter excitatory and inhibitory inputs
         p = 0;
-        P_relE(1) = P_0;
-        P_relI(1) = P_0;
+        P_relE(1) = P_0E;
+        P_relI(1) = P_0I;
         for i=1:ipi:(stimulus_input_length)
             p = p+1; %Click number (starts with 1)
-            jitter=round(randn(1)/(1000*step)); %1 ms jitter
-            
-            if (i+jitter)<1 || (i+jitter)>(length(input)-length(kernel))
-                jitter=1;
+%             jitter=round(randn(1)/(1000*step)); %1 ms jitter
+            jitter = floor(gamrnd(2.54,0.007)*1e3); %jitter with gamma distribution with parameters extracted from stim latency data (real neurons)
+%             jitter = jitter*1;
+            while (i+jitter)<1 || (i+jitter)>(length(input)-length(kernel))
+                jitter = floor(gamrnd(2.54,0.007)*1e3);
             end
             t0 = i+jitter;
             if i == 1
-                P_relE(1:t0) = P_0;
-                P_relI(1:t0) = P_0;
+                P_relE(1:t0) = P_0E;
+                P_relI(1:t0) = P_0I;
             end
             for t = t0:t0+2*ipi-1
-                if adaptation ==1 % depression
-                    P_relE(t+1) = P_0 + (f_DE*P_relE(t0)-P_0)*exp(-(t+1-t0)*step/tau_pE);
-                    P_relI(t+1) = P_0 + (f_DI*P_relI(t0)-P_0)*exp(-(t+1-t0)*step/tau_pI);
+                if adaptation.E ==1 % depression
+                    P_relE(t+1) = P_0E + (f_DE*P_relE(t0)-P_0E)*exp(-(t+1-t0)*step/tau_pE);
                 else % Facilitation
-                    P_relE(t+1) = P_0 + (P_relE(t0) + f_E*(1-P_relE(t0))-P_0)*exp(-(t+1-t0)*step/tau_pE);
-                    P_relI(t+1) = P_0 + (P_relI(t0) + f_I*(1-P_relI(t0))-P_0)*exp(-(t+1-t0)*step/tau_pI);
+                    P_relE(t+1) = P_0E + (P_relE(t0) + f_E*(1-P_relE(t0))-P_0E)*exp(-(t+1-t0)*step/tau_pE);
                 end
-
+                if adaptation.I==1
+                    P_relI(t+1) = P_0I + (f_DI*P_relI(t0)-P_0I)*exp(-(t+1-t0)*step/tau_pI);
+                else 
+                    P_relI(t+1) = P_0I + (P_relI(t0) + f_I*(1-P_relI(t0))-P_0I)*exp(-(t+1-t0)*step/tau_pI);
+                end
+                
             end
             
             E_str(p) = P_relE(t0)*E_strength;
@@ -235,6 +266,7 @@ for r = 1:nb_rep
     Ge_total = [Ge_total; Ge];
     Gi_total = [Gi_total; Gi];
     Net_excit_total = [Net_excit_total; Ge-Gi];
+%     test = 1;
     [spikes,V]=run_LIFmodel(Ge,Gi);
     
     %rate

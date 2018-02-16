@@ -30,6 +30,8 @@ global kernel_time_constant
 kernel_time_constant = 0.005;
 
 % for tau_pE = 0.15
+
+
 for f_DI = 1.2
     %         for kernel_time_constant = [0.005 0.010 0.020 0.040]
     %     for  f_DE = 0.7
@@ -303,8 +305,8 @@ global tau_pE tau_pI
 
 %% Model (Conductance, Spikes etc)
 
-nb_rep = 100;
-rate_total = [];
+nb_rep = 30;
+rate_total= [];
 Ge_total = [];
 Gi_total = [];
 Net_excit_total = [];

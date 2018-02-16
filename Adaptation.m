@@ -742,9 +742,9 @@ corr(output.VStime{1, 10}(:,1),output.VStime{1, 10}(:,2))
 
 
 %% 01/25/2018 Spike latency calculation, see Bendor 2008
-clear all
-% load('SyncN_new.mat');
-load('SyncP_new.mat');
+% clear all
+load('SyncN_new.mat');
+% load('SyncP_new.mat');
 
 
 nn = size(output.mean_neuron_spont{1},1);
@@ -764,7 +764,7 @@ for f = 1:12
                 +(output.mean_neuron_rates{f}(n,2*t-1)))/2 ;
             t = t+1;
         end
-        spontstd{f}(n) = deviation(spont{f}(n,:),1);
+        spontstd{f}(n) = std(spont{f}(n,:),1);
     end
 end
 
@@ -792,15 +792,18 @@ responsetime = responsetime*1e-3;
 % responsetime(12,:) = []; %for SyncN neurons, neuron 12 doesnt react to
 % stim
 
-% edges = 0:5:max(responsetime);
-% figure
-% for n = 1:nn
-%     [h{n},edges] = histcounts(responsetime(n,:),edges);
-%     subplot(15,2,n)
-%     histogram(responsetime(n,:),edges)
-%     stdNeuron(n) = std(responsetime(n,:),1);
-% end
+edges = 0:5*1e-3:max(responsetime);
+figure
+for n = 1:nn
+    [h{n},edges] = histcounts(responsetime(n,:),edges);
+    subplot(15,2,n)
+    histogram(responsetime(n,:),edges)
+    stdNeuron(n) = std(responsetime(n,:),1);
+end
+figure
 
+edges = 0:2*1e-3:max(responsetime);
+histogram(responsetime,edges)
 
 ICI_list= [250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]*1e-3;
 
@@ -819,27 +822,27 @@ end
 
 % perihistogram
 % edges = 0:0.001:0.25;
-edges = 0: pi/32: 2*pi;
-for n = 1:nn
-    figure('position',[800 100 800 900])
-    for f = 1:12
-        subplot(12,1,f)
-        
-        histogram(firsthalf{n,f},edges) %Blue
-%         pause
-        hold on
-        histogram(secondhalf{n,f},edges) %Orange
-        axis([0,2*pi,0,20])
-        if f <12
-            set(gca,'XTick',[]);
-        else
-            xticks([0 0.5*pi pi 1.5*pi 2*pi])
-            xticklabels({'0' '0.5\pi' '\pi' '1.5\pi' '2\pi'})
-        end
-        
-    end
-    pause
-end
+% edges = 0: pi/32: 2*pi;
+% for n = 1:nn
+%     figure('position',[800 100 800 900])
+%     for f = 1:12
+%         subplot(12,1,f)
+%         
+%         histogram(firsthalf{n,f},edges) %Blue
+% %         pause
+%         hold on
+%         histogram(secondhalf{n,f},edges) %Orange
+%         axis([0,2*pi,0,20])
+%         if f <12
+%             set(gca,'XTick',[]);
+%         else
+%             xticks([0 0.5*pi pi 1.5*pi 2*pi])
+%             xticklabels({'0' '0.5\pi' '\pi' '1.5\pi' '2\pi'})
+%         end
+%         
+%     end
+% %     pause
+% end
 
 
 
@@ -857,8 +860,8 @@ end
 
 %% Model data analysis and prediction 01/02/2018
 clear all
-load('model_datasyncP.mat')
-% load('model_datasyncN.mat')
+% load('model_datasyncP.mat')
+load('model_datasyncN.mat')
 ICI_list= [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]*1e-3;
 
 for f = 1:11
@@ -903,6 +906,98 @@ for f = 1:11
     deviation(2,f) = std(secondhalf{f});
     end
 end
+
+
+
+
+
+%% New model data including facilitation. 
+
+load('dataaaaa2.mat')
+
+% UnitInfo.List : {f_dE, f_fI, tau_pE, tau_pI, E, I}
+% E and I stays constant.
+
+X1 = zeros(length(unique(UnitInfo.List(:,1))),length(unique(UnitInfo.List(:,2)))); % Matrix of Rho depending on adaptation values
+X3 = X1;
+for n = 1:length(UnitInfo.List)
+    if UnitInfo.Info(n).Pval < 0.05
+        
+        X1(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) = X1(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) + UnitInfo.Info(n).Rho;
+    end
+    X3(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) = X3(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) + UnitInfo.Info(n).Output.mean_discharge_rate.mean(11);
+end
+
+X1 = X1/(8*8);
+X3 = X3/64;
+
+figure
+imagesc(X1)
+xticks([1:9])
+xticklabels({'0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9'})
+xlabel('f_DI')
+yticks([1:3])
+yticklabels({'0.1','0.2','0.3'})
+ylabel('f_DE')
+figure
+imagesc(X3)
+xticks([1:9])
+xticklabels({'0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9'})
+xlabel('f_DI')
+yticks([1:3])
+yticklabels({'0.1','0.2','0.3'})
+ylabel('f_DE')
+
+X2 = {};
+figure
+i = 1;
+f_dE = 0.3;
+tau_pE = unique(UnitInfo.List(:,3));
+tau_pI = unique(UnitInfo.List(:,4));
+for f_dI = 0.1:0.1:0.9
+    subplot(2,5,i)
+    X2{i} = zeros(8,8);
+    
+    x = find(UnitInfo.List(:,1)==f_dE & UnitInfo.List(:,2)==f_dI);
+    for n = 1:length(x)
+        if UnitInfo.Info(x(n)).Pval < 0.05
+        X2{i}(find(tau_pE == UnitInfo.List(x(n),3)),tau_pI == UnitInfo.List(x(n),4)) =  X2{i}(find(tau_pE == UnitInfo.List(x(n),3)),tau_pI == UnitInfo.List(x(n),4))+ UnitInfo.Info(x(n)).Rho;
+        end
+    end
+    imagesc(X2{i})
+    colorbar
+    caxis([-1 1])
+    i = i+1;
+end
+
+ figure
+subplot(1,3,2)
+f_dE = 0.2;
+f_dI = 0.9;
+X2{1} = zeros(8,8);
+
+x = find(round(UnitInfo.List(:,1)*10)==f_dE*10 & round(UnitInfo.List(:,2)*10)==f_dI*10);
+for n = 1:length(x)
+    if UnitInfo.Info(x(n)).Pval < 0.05
+        
+        X2{1}(find(tau_pE == UnitInfo.List(x(n),3)),tau_pI == UnitInfo.List(x(n),4)) =  X2{1}(find(tau_pE == UnitInfo.List(x(n),3)),tau_pI == UnitInfo.List(x(n),4))+ UnitInfo.Info(x(n)).Rho;
+    end
+end
+imagesc(X2{1})
+colorbar
+caxis([-1 1])
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

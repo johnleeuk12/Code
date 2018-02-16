@@ -5,21 +5,26 @@ function filterdata(n)
 %load('infoset.mat');
 %animals = unique(cellfun(@char,{output.animal},'unif',0));
 
+
 %% file info
 animal_list = {'m36n','m2p','m41o','m32q'};
 
 % createFileInfo('m2p') %animal namecode
 animal = animal_list{n};
 
-% UnitInfo = createFileInfo(animal);
+global directory
+directory = ['C:\Users\John.Lee\OneDrive\Bendorlab\Marmoset\' animal];
 
-load([animal '_List3']);
+UnitInfo = createFileInfo(animal);
+
+% load([animal '_List3']);
 
 ICI_list1 = [2 2.5 3 5 7.5 10 12.5 15 20 25 30 35 40 45 50 55 60 65 70 75]; %ms, ICI
 ICI_list2 = [250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
 %
 
-directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
+
+% directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
 % for n = 1:length(UnitInfo.List)
 %     disp(n)
 %     spiketable = load([directory filesep UnitInfo.List{1,n}]);
@@ -115,7 +120,7 @@ directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
 
 
 %% spikes, VS and raster
-directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
+% directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
 % directory = ['C:\Users\John\Dropbox\Bendorlab\Code' '\marmoset\' animal];
 
 for n = 1:length(UnitInfo.List)
@@ -346,7 +351,7 @@ for n = 1:length(UnitInfo.List)
     %         shadedErrorBar(ICI_list,all_mean_rate_stim,all_std_rate_stim)
     
 end
-filename = [animal '_List3.mat'];
+filename = [animal '_List2.mat'];
 save(filename,'UnitInfo');
 
 
@@ -354,8 +359,9 @@ save(filename,'UnitInfo');
 %% Create fileinfo
 function UnitInfo = createFileInfo(animal)
 
+global directory
 % animal = 'm2p';
-directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
+% directory = ['U:\Neural and Behavioural Data' '\marmoset\' animal];
 filelist = dir(directory);
 filelist = filelist(3:end,:);
 filelist = extractfield(filelist,'name');
@@ -367,12 +373,12 @@ UnitInfo.Info = struct('Channel_Nb',{},'Stimuli_Nb',{},'Pre_stim_Duration',{},'P
 
 % filelist{1} = 'M2p0010.dat';
 for k = 1 :length(filelist)
-    fid = fopen(['U:\Neural and Behavioural Data' filesep 'marmoset' filesep animal filesep filelist{k}]);
+    fid = fopen([directory filesep filelist{k}]);
     frewind(fid)
     fileinfo = textscan(fid,'%s %s',30,'delimiter',{' = ','% '}...
         ,'MultipleDelimsAsOne',1,'headerlines', 6);
     fclose(fid);
-    A = fileread(['U:\Neural and Behavioural Data' filesep 'marmoset' filesep animal filesep filelist{k}]);
+    A = fileread([directory filesep filelist{k}]);
     A1 = strfind(A,'Pre-stimulus record time (ms) = ');
     A2 = strfind(A,'Post-stimulus record time (ms) = ');
     A3 = strfind(A,'Number of Stimuli = ');
@@ -381,12 +387,15 @@ for k = 1 :length(filelist)
     l3 = length('Number of Stimuli = ');
     A4 = strfind(A,'pblaster_version = ');
     l4 = length('pblaster_version = ');
+    A5 = strfind(A,'Attenuation(s) Used (dB) = ');
+    l5 = length('Attenuation(s) Used (dB) = ');
     
     
     Prestim = str2num(A(A1+l1:A1+l1+2));
     Poststim = str2num(A(A2+l2:A2+l2+2));
     NbOstimuli = str2num(A(A3+l3:A3+l3+1));
     pblaster =  str2num(A(A4+l4:A4+l4+2));
+    Attenuation = str2num(A(A5+l5:A5+l5+3));
     %     if strcmp(fileinfo{1,2}{1,1}, '1')==1
     %         UnitInfo.List{1,i} = filelist{k};
     % %         UnitInfo.Info(i).Channel_Nb = str2num(fileinfo{1,2}{10,1});
@@ -405,6 +414,7 @@ for k = 1 :length(filelist)
                 UnitInfo.Info(i).Stimuli_Nb = str2num(fileinfo{1,2}{16,1});
                 UnitInfo.Info(i).Pre_stim_Duration = Prestim;
                 UnitInfo.Info(i).Post_stim_Duration = Poststim;
+                UnitInfo.Info(i).attn =Attenuation;
                 i = i+1
             end
             
@@ -414,6 +424,7 @@ for k = 1 :length(filelist)
             UnitInfo.Info(i).Stimuli_Nb = str2num(fileinfo{1,2}{16,1});
             UnitInfo.Info(i).Pre_stim_Duration = Prestim;
             UnitInfo.Info(i).Post_stim_Duration = Poststim;
+            UnitInfo.Info(i).attn =Attenuation;
             i = i+1
         elseif strcmp(fileinfo{1,2}{17,1}, '12')==1 % && pblaster
             if strcmp(fileinfo{1,2}{18,1}, '6.1')==1
@@ -422,6 +433,7 @@ for k = 1 :length(filelist)
                 UnitInfo.Info(i).Stimuli_Nb = str2num(fileinfo{1,2}{16,1});
                 UnitInfo.Info(i).Pre_stim_Duration = Prestim;
                 UnitInfo.Info(i).Post_stim_Duration = Poststim;
+                UnitInfo.Info(i).attn =Attenuation;
                 i = i+1
             end
             
@@ -431,6 +443,7 @@ for k = 1 :length(filelist)
             UnitInfo.Info(i).Stimuli_Nb = str2num(fileinfo{1,2}{17,1});
             UnitInfo.Info(i).Pre_stim_Duration = Prestim;
             UnitInfo.Info(i).Post_stim_Duration = Poststim;
+            UnitInfo.Info(i).attn =Attenuation;
             i = i+1
         end
     end
