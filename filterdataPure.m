@@ -211,7 +211,7 @@ end
 output.meanDR = [ output.meanDR mean2(output.mean_rate_stim)];
 output.errorDR = [output.errorDR std2(output.mean_rate_stim)/sqrt(size(output.mean_rate_stim,1)*size(output.mean_rate_stim,2))];
 
-figure
+% figure
 plot(xs,ys,'LineWidth',1.7)
 
 % figure
