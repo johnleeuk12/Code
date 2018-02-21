@@ -7,8 +7,8 @@ clear all
 
 %% Parameters
 global ICI_list
-% ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
-ICI_list = 5;
+ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+% ICI_list = 5;
 
  
 global tau_pE tau_pI kernel_time_constant
@@ -27,14 +27,14 @@ IE_delay = 5; %ms
 E_strength = 4.5; %nS
 I_strength = 8.5; %nS
 % f = 10;
-adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
-adaptation.I = 0;
-PureTone = 1;
+adaptation.E = 0; %adaptation for {E,I} 0 is facilitation, 1 is depression.
+adaptation.I = 1;
+PureTone = 0;
 
     n=0;
-for f_E = [0.1 0.3] %[0.1 0.2 0.3]
-    for f_I = [0.1 0.5]% [0.1 :0.1 : 0.9]
-        for tau_pE =0.17 % 0.05:0.02:0.20
+for f_E = 0.5 %[0.1 0.2 0.3]
+    for f_I = 0.1 % [0.1 :0.1 : 0.9]
+        for tau_pE =0.15 % 0.05:0.02:0.20
             for tau_pI = 0.10 %0.05:0.02:0.20
 
     output = {};
@@ -89,7 +89,8 @@ for f_E = [0.1 0.3] %[0.1 0.2 0.3]
     end
 end
 
-save('puretoneModel2.mat','UnitInfo') 
+% save('puretoneModel2.mat','UnitInfo') 
+save('SyncPfModel.mat','UnitInfo') 
 Hz_list = [];
 for i = 1:length(ICI_list)
     Hz_list = [Hz_list round(1000/ICI_list(i))];
@@ -178,7 +179,7 @@ freq2=1/(step*ipi);
 
 %% Modeling Conductance and adaptation.
 
-nb_rep = 30;
+nb_rep = 100;
 E_str(1) = E_strength;
 I_str(1) = I_strength;
 E_strength_mean = [];
@@ -195,7 +196,7 @@ if adaptation.E ==1
     f_DE = 1-f_E;
     P_0E = 1;
 else
-    P_0E = 0.3;
+    P_0E = 0.5;
 end
 if adaptation.I ==1
     f_DI = 1-f_I;
@@ -206,6 +207,7 @@ end
 
 
 for r = 1:nb_rep
+    disp({f,r})
     E_input=input;
     I_input=input;
     
@@ -381,6 +383,7 @@ spikes_per_click = {};
 p = floor(STIM/ICI);
 for q = 1:p
     clicktime = round((q-1)*ICI)+15+PRE; %plus input latency + kernel peak
+    spikes_per_click.brut(:,q) = mean(rate_total(:,clicktime - 10 : clicktime + 10),2);
     spikes_per_click.mean(q) = mean2(rate_total(:,clicktime - 10 : clicktime + 10));
     spikes_per_click.std(q) = std2(rate_total(:,clicktime - 10 : clicktime + 10))/sqrt(20*nb_rep);
     spikes_per_click.xaxis(q) = clicktime;

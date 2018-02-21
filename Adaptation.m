@@ -990,7 +990,30 @@ caxis([-1 1])
 
 
 
+%% spikes per click in model neurons. 
 
+load('SyncPfModel.mat')
+ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+Hz_list = [];
+for i = 1:length(ICI_list)
+    Hz_list = [Hz_list round(1000/ICI_list(i))];
+end
+
+figure
+cmap = colormap(jet(length(ICI_list)+1));
+
+for n =1:2:length(ICI_list)
+    SEM = UnitInfo.Info.Output.spikes_per_click{n}.std/sqrt(20*600);
+    ts = tinv([0.025  0.975],20*(600)-1);   
+    error = ts(2)*SEM;
+    errorbar(UnitInfo.Info.Output.spikes_per_click{n}.xaxis,UnitInfo.Info.Output.spikes_per_click{n}.mean,...
+        error, 'linewidth', 1.7,'color',cmap(n+1,:),'DisplayName', ...
+        [num2str(Hz_list(n)) 'Hz'])
+    hold on
+    %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
+end
+axis([500,1000,0,80]);
+legend('show')
 
 
 
