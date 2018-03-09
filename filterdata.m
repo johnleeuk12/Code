@@ -10,14 +10,14 @@ function filterdata(n)
 animal_list = {'m36n','m2p','m41o','m32q'};
 
 % createFileInfo('m2p') %animal namecode
-animal = animal_list{n};
+animal = animal_list{4};
 
 global directory
 directory = ['C:\Users\John.Lee\OneDrive\Bendorlab\Marmoset\' animal];
 
-UnitInfo = createFileInfo(animal);
+% UnitInfo = createFileInfo(animal);
 
-% load([animal '_List3']);
+load([animal '_List3']);
 
 ICI_list1 = [2 2.5 3 5 7.5 10 12.5 15 20 25 30 35 40 45 50 55 60 65 70 75]; %ms, ICI
 ICI_list2 = [250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
@@ -129,7 +129,7 @@ for n = 1:length(UnitInfo.List)
     UnitInfo.Info(n).Positive = 0;
 end
 %
-for n = 1:length(UnitInfo.List)
+for n = 8%; 1:length(UnitInfo.List)
     disp(n)
     spiketable = load([directory filesep UnitInfo.List{1,n}]);
     
@@ -292,7 +292,7 @@ for n = 1:length(UnitInfo.List)
                 new_all_mean_rate_stim = all_mean_rate_stim(9:end);
                 indF = [9:length(ICI_list)];
             end
-             
+            
             for f = indF
                 if vector(f) >0.1
                     counter1 = counter1 + 1;
@@ -300,7 +300,8 @@ for n = 1:length(UnitInfo.List)
                     counter1 = 0;
                 end
                 
-                if all_mean_rate_stim(f) - 2*all_std_rate_stim(f)>0 && all_mean_rate_stim(f)-all_mean_rate_spont(f)>2
+                %                 if all_mean_rate_stim(f) - 2*all_std_rate_stim(f)>0 && all_mean_rate_stim(f)-all_mean_rate_spont(f)>2
+                if all_mean_rate_stim(f) - 2*all_std_rate_spont(f)>0 && all_mean_rate_stim(f)-all_mean_rate_spont(f)>2
                     counter2 = counter2 + 1;
                 else
                     counter2 = 0;
@@ -351,7 +352,7 @@ for n = 1:length(UnitInfo.List)
     %         shadedErrorBar(ICI_list,all_mean_rate_stim,all_std_rate_stim)
     
 end
-filename = [animal '_List2.mat'];
+% filename = [animal '_List4.mat'];
 save(filename,'UnitInfo');
 
 

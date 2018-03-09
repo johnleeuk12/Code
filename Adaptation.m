@@ -539,6 +539,28 @@ hold on
 plot(edges,h2)
 plot(edges,h3)
 
+
+
+%% 07/03/2018 
+clear all
+load('SyncP_new.mat')
+ICI_list= [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+Hz_list = round(1./ICI_list*1e3);
+
+SPC_mean = []; %average spikes per click
+SPC_error = [];
+
+for f = 1:length(ICI_list)
+    SPC_mean = [SPC_mean mean(output.spikes_per_click{f}.mean)];
+    SPC_error = [SPC_error mean(output.spikes_per_click{f}.error)];
+end
+
+[RHO,PVAL] = corr(ICI_list.',SPC_mean.','Type','Spearman')
+
+
+errorbar(Hz_list, SPC_mean, SPC_error,'Linewidth',1.5)
+hold on     
+
 %% plot spikes per click for all neurons
 
 

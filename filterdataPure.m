@@ -17,6 +17,7 @@ output.rates_stim{1} = [];
 output.rates_pre{1} = [];
 output.rates_post{1} = [];
 output.isi_total{1} = [];
+figure
 for i = 2:4
     animal = animal_list{i};
     load([animal '_List3']);
@@ -164,6 +165,16 @@ for i = 2:4
                         
                     end
                     
+                    % plotting individual neurons
+                    xs = 1:400;
+                    h = 10;
+                    for iii = 1:400
+                        ys(iii) = gaussian_kern_reg(xs(iii),xs,mean([output.rates_pre{nn,1} output.rates_stim{nn,1}],1),h);
+                    end
+                    subplot(6,5,nn)
+                    plot(xs,ys,'LineWidth',1.7)
+                    xlabel(UnitInfo.List{1,k})
+                    pause(0.1)
                 end
                 nn = nn+1;
                 test = 1;

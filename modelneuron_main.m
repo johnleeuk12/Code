@@ -7,8 +7,8 @@ clear all
 
 %% Parameters
 global ICI_list
-ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
-% ICI_list = 5;
+% ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+ICI_list = 5; % Puretone
 
  
 global tau_pE tau_pI kernel_time_constant
@@ -27,15 +27,16 @@ IE_delay = 5; %ms
 E_strength = 4.5; %nS
 I_strength = 8.5; %nS
 % f = 10;
-adaptation.E = 0; %adaptation for {E,I} 0 is facilitation, 1 is depression.
+adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
 adaptation.I = 1;
-PureTone = 0;
+PureTone = 1;
 
     n=0;
-for f_E = 0.5 %[0.1 0.2 0.3]
-    for f_I = 0.1 % [0.1 :0.1 : 0.9]
-        for tau_pE =0.15 % 0.05:0.02:0.20
-            for tau_pI = 0.10 %0.05:0.02:0.20
+    figure
+for f_E = 0.1 %[0 0.1 0.2 0.3 0.4]
+    for f_I = 0.4 %[0.1 :0.1 : 0.4]
+        for tau_pE =0.1 % 0.05:0.02:0.20
+            for tau_pI = 0.5 %0.05:0.02:0.20
 
     output = {};
     output.raster.stim = [];
@@ -84,13 +85,20 @@ for f_E = 0.5 %[0.1 0.2 0.3]
     
     UnitInfo.Info(n).Rho = RHO;
     UnitInfo.Info(n).Pval = PVAL;
+%     subplot(5,5,n)
+    plot(UnitInfo.Info(n).Output.rate{1}, 'linewidth', 1.7,'DisplayName',[num2str(n)])
+    xlabel([num2str(UnitInfo.List(n,1)) num2str(UnitInfo.List(n,2))]);
+    %         hold on
+    %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
+%     pause
+%     hold on
             end
         end
     end
 end
 
 % save('puretoneModel2.mat','UnitInfo') 
-save('SyncPfModel.mat','UnitInfo') 
+% save('SyncPfModel.mat','UnitInfo') 
 Hz_list = [];
 for i = 1:length(ICI_list)
     Hz_list = [Hz_list round(1000/ICI_list(i))];
@@ -104,13 +112,13 @@ cmap = colormap(jet(length(ICI_list)+1));
 
 if  PureTone == 1
     
-for n = 1:4
-    plot(UnitInfo.Info(n).Output.rate{1}, 'linewidth', 1.7,'DisplayName',[num2str(n)])
-    %         hold on
-    %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
-    pause
-    hold on
-end
+    for n = 1:4
+        plot(UnitInfo.Info(n).Output.rate{1}, 'linewidth', 1.7,'DisplayName',[num2str(n)])
+        %         hold on
+        %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
+        pause
+        hold on
+    end
 else
     p = n;
     norm_mean = [];
@@ -179,7 +187,7 @@ freq2=1/(step*ipi);
 
 %% Modeling Conductance and adaptation.
 
-nb_rep = 100;
+nb_rep = 30;
 E_str(1) = E_strength;
 I_str(1) = I_strength;
 E_strength_mean = [];
@@ -211,7 +219,7 @@ for r = 1:nb_rep
     E_input=input;
     I_input=input;
     
-    for j=1:10  %10 jitter excitatory and inhibitory inputs
+    for j=1:15  %10 jitter excitatory and inhibitory inputs
         p = 0;
         P_relE(1) = P_0E;
         P_relI(1) = P_0I;
@@ -321,6 +329,11 @@ for r = 1:nb_rep
     raster.stim=[raster.stim f*ones(size(spikes))];
     raster.rep=[raster.rep r*ones(size(spikes))];
     raster.spikes=[raster.spikes spikes];
+    
+%     figure
+%     plot(Ge)
+%     hold on 
+%     plot(Gi)
 end
 out.raster = raster;
 
@@ -447,21 +460,22 @@ sigma = 0.01    ;
 %spike rate adaptation
 Gsra = zeros(1,length(Ge));
 % tau_sra = 0.1; %100ms
-delta_sra = 1*1e-9;
-f_sra = 0.998;
+delta_sra = 50*1e-9;
+% f_sra = 0.998;
+f_sra = 0.993;
 
 
 
 V(1)=Erest; %Initializing voltage
 % running without spike-rate adaptation. to include this adaptation, change
-% voltage equation. 
+% voltage equation.
 while(t<length(Ge))
-    V(t+1)=(-step*( Ge(t)*(V(t)-Ee) + Gi(t)*(V(t)-Ei) + Grest*(V(t)-Erest))/C)+V(t) + sigma*randn*sqrt(step); %+Gsra(t)*(V(t)-Ek))/C)
+    V(t+1)=(-step*( Ge(t)*(V(t)-Ee) + Gi(t)*(V(t)-Ei) + Grest*(V(t)-Erest)+Gsra(t)*(V(t)-Ek) )/C)+V(t) + sigma*randn*sqrt(step); %+Gsra(t)*(V(t)-Ek))/C)
     Gsra(t+1) = Gsra(t)*f_sra; % + sigma*randn*sqrt(step);
     if V(t+1)>(Erest+0.020) %20 mV above Erest %artificial threshold
         V(t+1)=0.050; %spike to 50 mV
         spikes(i)=step*(t+1);
-        Gsra(t+1) = Gsra(t+1) +delta_sra;
+        Gsra(t+1) = Gsra(t) +delta_sra;
         i=i+1;
         t=t+1;
         V(t+1)=Erest;
@@ -470,6 +484,11 @@ while(t<length(Ge))
     end
     t =t+1;
 end
+% figure
+% plot(Gsra)
+% 
+% 
+% test = 1;
 
 
 
