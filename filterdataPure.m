@@ -24,7 +24,7 @@ for i = 2:4
     
     SyncInfo = UnitInfo;
     Sync = 1; %or 0 for Nsync
-    Positive = -1; % or 1 for Negative
+    Positive = 1; % or 1 for Negative
     StimType = 12; % or 20
     
     % for i = 2:4

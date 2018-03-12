@@ -32,11 +32,11 @@ adaptation.I = 1;
 PureTone = 1;
 
     n=0;
-    figure
-for f_E = 0.1 %[0 0.1 0.2 0.3 0.4]
+%     figure
+for f_E = 0 %[0 0.1 0.2 0.3 0.4]
     for f_I = 0.4 %[0.1 :0.1 : 0.4]
-        for tau_pE =0.1 % 0.05:0.02:0.20
-            for tau_pI = 0.5 %0.05:0.02:0.20
+        for tau_pE =0.15 % 0.05:0.02:0.20
+            for tau_pI = 0.10 %0.05:0.02:0.20
 
     output = {};
     output.raster.stim = [];
@@ -86,8 +86,8 @@ for f_E = 0.1 %[0 0.1 0.2 0.3 0.4]
     UnitInfo.Info(n).Rho = RHO;
     UnitInfo.Info(n).Pval = PVAL;
 %     subplot(5,5,n)
-    plot(UnitInfo.Info(n).Output.rate{1}, 'linewidth', 1.7,'DisplayName',[num2str(n)])
-    xlabel([num2str(UnitInfo.List(n,1)) num2str(UnitInfo.List(n,2))]);
+%     plot(UnitInfo.Info(n).Output.rate{1}, 'linewidth', 1.7,'DisplayName',[num2str(n)])
+%     xlabel([num2str(UnitInfo.List(n,1)) num2str(UnitInfo.List(n,2))]);
     %         hold on
     %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
 %     pause
@@ -105,18 +105,18 @@ for i = 1:length(ICI_list)
 end
 
 
-figure
+% figure
 cmapp = [[0.1 0.7 0.1]; [0.9 0.6 0.1]; [0 0 0]   ];%    [0.26 0.5 0.9]   ]; %; [0.9 0.3 0.26]; ];
 
 cmap = colormap(jet(length(ICI_list)+1));
 
 if  PureTone == 1
     
-    for n = 1:4
+    for n = 1
         plot(UnitInfo.Info(n).Output.rate{1}, 'linewidth', 1.7,'DisplayName',[num2str(n)])
         %         hold on
         %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
-        pause
+%         pause
         hold on
     end
 else
@@ -124,7 +124,7 @@ else
     norm_mean = [];
     subplot(2,2,[1 3])
     
-    hold off
+%     hold off
     for n =1:2:length(UnitInfo.Info(p).Output.rate)
         plot(UnitInfo.Info(p).Output.rate{n}, 'linewidth', 1.7,'color',cmap(n+1,:),'DisplayName', ...
             [num2str(Hz_list(n)) 'Hz'])
@@ -218,8 +218,9 @@ for r = 1:nb_rep
     disp({f,r})
     E_input=input;
     I_input=input;
-    
+%     delay=round(abs(IE_delay)/(1000*step));
     for j=1:15  %10 jitter excitatory and inhibitory inputs
+        delay = round(abs((IE_delay-1)+randn(1)*sqrt(0.25))/(1000*step)); % 3/12/2018   adding noize to the delay as shown in Wehr 2003. centered at 4ms. 
         p = 0;
         P_relE(1) = P_0E;
         P_relI(1) = P_0I;
@@ -260,7 +261,7 @@ for r = 1:nb_rep
             %             if (t0)<1 || (t0)>(length(input)-length(kernel))
             %                 jitter=0;
             %             end
-            I_input((latency+t0):(latency+t0+length(kernel)-1))=I_input((latency+t0):(latency+t0+length(kernel)-1))+ kernel*I_str(p); %exponential +tau_m(2)/(tau_d-tau_r)*kernel*I_str(p);
+            I_input((latency+t0+delay):(latency+t0+delay+length(kernel)-1))=I_input((latency+t0+delay):(latency+t0+delay+length(kernel)-1))+ kernel*I_str(p); %exponential +tau_m(2)/(tau_d-tau_r)*kernel*I_str(p);
             
             %             plot(P_relE)
             %             hold on
@@ -278,10 +279,12 @@ for r = 1:nb_rep
     
     %   %
     delay=round(abs(IE_delay)/(1000*step));  %delay in steps
-
+    
     if IE_delay>=0
         Ge=E_input;
-        Gi=[zeros(1,delay) I_input(1:(length(I_input)-delay))];
+        Gi=I_input;
+        
+        %         Gi=[zeros(1,delay) I_input(1:(length(I_input)-delay))];
     elseif IE_delay<0
         Gi=I_input;
         Ge=[zeros(1,delay) E_input(1:(length(E_input)-delay))];
@@ -460,9 +463,11 @@ sigma = 0.01    ;
 %spike rate adaptation
 Gsra = zeros(1,length(Ge));
 % tau_sra = 0.1; %100ms
-delta_sra = 50*1e-9;
+% delta_sra = 1e-9;
+delta_sra = 20*1e-9;
+
 % f_sra = 0.998;
-f_sra = 0.993;
+f_sra = 0.995;
 
 
 
@@ -486,8 +491,8 @@ while(t<length(Ge))
 end
 % figure
 % plot(Gsra)
-% 
-% 
+% % 
+% % 
 % test = 1;
 
 
