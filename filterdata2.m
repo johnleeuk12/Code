@@ -9,7 +9,7 @@ clear all
 %% file info
 
 Sync = 1; %or 0 for Nsync
-Positive = 1; % or 1 for Negative
+Positive = 0; % or 1 for Negative
 StimType = 12; % or 20
 putfigure = 1;
 

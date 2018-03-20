@@ -127,189 +127,352 @@ clear all
 load('SyncP_new.mat')
 NP = size(output.rates_stim{1, 1},1);
 DR_trialP = [];
-for f = 1:12
+for f = 1:10
     for n = 1:NP
-        DR_trialP(n,f) = mean(output.rates_stim{f}(n,:));
+        DR_trialP(n,f) = mean(output.rates_stim{f+1}(n,:));
     end
 end
 
 load('SyncN_new.mat')
 NN = size(output.rates_stim{1, 1},1);
 DR_trialN = [];
-for f = 1:12
+for f = 1:10
     for n = 1:NN
-        DR_trialN(n,f) = mean(output.rates_stim{f}(n,:));
+        DR_trialN(n,f) = mean(output.rates_stim{f+1}(n,:));
     end
 end
 
 DR_trialN(randsample(1:305,5),:) = []; %randomly cutting data size to match SyncP neurons. 
 
+DR_trialN(find(DR_trialN>100)) = 0;
+DR_trialP(find(DR_trialP>100)) = 0;
+% DR_trialN(find(DR_trialN == 0)) = NaN;
+% DR_trialP(find(DR_trialP == 0)) = NaN;
+
 SyncPall = reshape(DR_trialP,[],1);
 SyncNall = reshape(DR_trialN,[],1);
 
 X = [SyncNall,SyncPall];
-edges = {0:4:ceil(max(max(X))) 0:4:ceil(max(max(X)))};
-hist3(X,edges)
+edges = {0:2:ceil(max(max(X))) 0:2:ceil(max(max(X)))};
+% hist3(X,edges)
 [CountData, Xedges,Yedges] = histcounts2(X(:,1),X(:,2),edges{1},edges{2});
+% linear interpolarization of Distribution
+% Vqall = interp2(interp2(CountData,'cubic'),'cubic');
+Vqall = interp2(CountData,'cubic');
+Vqall(find(Vqall<0)) = 0;
+pdfall = Vqall/sum(sum(Vqall));
+figure
+mesh(Vqall)
+
+
+% Do the same thing for all frequencies
+
+Countdatas = {};
+Vq = {};
+pdfs = {};
+for f = 1 :10
+    Countdatas{f} = histcounts2(DR_trialN(:,f),DR_trialP(:,f),edges{1},edges{2});
+    %     Vq{f} = interp2(interp2(Countdatas{f},'cubic'),'cubic');
+    Vq{f} = interp2(Countdatas{f},'cubic');
+    Vq{f}(find(Vq{f}<0)) = 0;
+    pdfs{f} = Vq{f}/sum(sum(Vq{f}));
+end
+
+% Calculating Information content
+
+InfoPN = 0;
+
+for f = 1:10
+    for r1 = 1:length(pdfall)
+        for r2 = 1:length(pdfall)
+            if pdfs{f}(r1,r2) ~= 0 && pdfall(r1,r2) ~=0
+                InfoPN = InfoPN + pdfs{f}(r1,r2)*log2(pdfs{f}(r1,r2)/pdfall(r1,r2));
+            end
+        end
+    end
+end
+
+InfoPN = InfoPN/10;
+log2(10)
+
+
+load('SyncNM_new.mat')
+NNM = size(output.rates_stim{1, 1},1);
+DR_trialNM1 = zeros(300,12);
+DR_trialNM2 = zeros(300,12);
+NM1 = randsample(NNM,600);
+NM2 = NM1(301:600);
+NM1 = NM1(1:300);
+
+for f = 1:10
+    for n = 1:300
+        DR_trialNM1(n,f) = mean(output.rates_stim{f+1}(NM1(n),:));
+        DR_trialNM2(n,f) = mean(output.rates_stim{f+1}(NM2(n),:));
+    end
+end
+
+
+DR_trialNM1(find(DR_trialNM1 == 0)) = NaN;
+DR_trialNM2(find(DR_trialNM2 == 0)) = NaN;
+% DR_trialNM1(find(DR_trialNM1>100)) = 0;
+% DR_trialNM2(find(DR_trialNM2>100)) = 0;
+
+
+
+SyncNM1all = reshape(DR_trialNM1,[],1);
+SyncNM2all = reshape(DR_trialNM2,[],1);
+
+XNM = [SyncNM1all,SyncNM2all];
+edges = {0:2:ceil(max(max(XNM))) 0:2:ceil(max(max(XNM)))};
+% hist3(X,edges)
+[CountDataNM, Xedges,Yedges] = histcounts2(XNM(:,1),XNM(:,2),edges{1},edges{2});
 
 % linear interpolarization of Distribution
+% Vqall = interp2(interp2(CountData,'cubic'),'cubic');
+VqallNM = interp2(CountDataNM,'cubic');
+VqallNM(find(VqallNM<0)) = 0;
+pdfallNM = VqallNM/sum(sum(VqallNM));
+figure
+mesh(VqallNM)
 
 
-Vq = interp2(CountData);
+% Do the same thing for all frequencies
 
+CountdatasNM = {};
+VqNM = {};
+pdfsNM = {};
+for f = 1 :10
+    CountdatasNM{f} = histcounts2(DR_trialNM1(:,f),DR_trialNM2(:,f),edges{1},edges{2});
+    %     Vq{f} = interp2(interp2(Countdatas{f},'cubic'),'cubic');
+    VqNM{f} = interp2(Countdatas{f},'cubic');
+    VqNM{f}(find(VqNM{f}<0)) = 0;
+    pdfsNM{f} = VqNM{f}/sum(sum(VqNM{f}));
+end
 
+% Calculating Information content
 
+InfoNM = 0;
 
+for f = 1:10
+    for r1 = 1:length(pdfallNM)
+        for r2 = 1:length(pdfallNM)
+            if pdfsNM{f}(r1,r2) ~= 0 && pdfallNM(r1,r2) ~=0
+                InfoNM = InfoNM + pdfsNM{f}(r1,r2)*log2(pdfsNM{f}(r1,r2)/pdfallNM(r1,r2));
+            end
+        end
+    end
+end
 
-
-
-
+InfoNM = InfoNM/10;
 
 
 %% Calculating MI 07/11/2017
+
+% Recalculating MI using a more simple method, directly comparable to joint
+% MI
+
+
 clear all
 load('SyncP_new.mat')
-NP = size(output.rates_stim{1, 1},1);
+% NP = size(output.rates_stim{1, 1},1);
+NP = 300;
 DR_trialP = [];
-for f = 1:12
+for f = 1:10
     for n = 1:NP
-        DR_trialP(n,f) = mean(output.rates_stim{f}(n,:));
+        DR_trialP(n,f) = mean(output.rates_stim{f+1}(n,:));
     end
 end
 
+DR_trialP(find(DR_trialP>100)) = 0;
+
 % 08/11/2017 attempt to linearly extrapolate a pdf.
-edgesTotalP = 0:1: ceil(max(max(DR_trialP)));
+edgesTotalP = 0:2: ceil(max(max(DR_trialP)));
 [NtotalP,edgesTotalP] = histcounts(DR_trialP,edgesTotalP);
-for i = 1:length(NtotalP)
-    if NtotalP(i) == 0
-        NtotalP(i) = NaN;
-    end
-end
-xaxisP = edgesTotalP(1:end-1);
-% plot(xaxis,Ntotal)
+% for i = 1:length(NtotalP)
+%     if NtotalP(i) == 0
+%         NtotalP(i) = NaN;
+%     end
+% end
+
+
+plot(NtotalP)
+xq = 0:1: ceil(max(max(DR_trialP)));
 % linear interpolation into infinite dataset
-[xDataP, yDataP] = prepareCurveData( xaxisP, NtotalP );
-vq1 = interp1(xDataP, yDataP, xaxisP);
+vq1 = interp1(edgesTotalP(2:end),NtotalP,xq(2:end),'pchip');
+vq1(find(vq1 <0)) = 0;
+vq1 = [vq1(2:end) 0];
 pdfPall = vq1/sum(vq1);
 % vq2 = interp1(xData, yData, xaxis,'spline');
 % plot(xaxis,vq1)
 % hold on 
 % plot(xaxis,vq2)
-
+vq2 = interp1(edgesTotalP(2:end),NtotalP,xq(2:end),'pchip');
+plot(vq2)
 
 InfoP = 0;
-for f= 1:12
+figure
+for f= 1:10
     [NcountP,edgesTotalP] = histcounts(DR_trialP(:,f),edgesTotalP);
-    [xDataP, yDataP] = prepareCurveData( xaxisP, NcountP );
-    vq2N = interp1(xDataP, yDataP, xaxisP);
+%     NcountP(find(NcountP==0)) = NaN;
+    vq2N = interp1(edgesTotalP(2:end),NcountP,xq(2:end),'pchip');
+    vq2N(find(vq2N <0)) = 0;
+    vq2N= [vq2N(2:end) 0];
     pdfP(f,:) = vq2N/sum(vq2N);
+    plot(pdfP(f,:))
+    hold on
     for r = 1:length(pdfPall)
-        if pdfP(f,r) ~=0 %  pdfPall(r) > 0.001 &&
+        if pdfP(f,r) ~=0 && pdfPall(r) ~=0
         InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
         end
     end
 end
 InfoP = InfoP/12;
-
-
-load('SyncN_new.mat')
-
-%for NM neurons, randomly select 22neurons
-
-
-
-N = size(output.rates_stim{1, 1},1);
-DR_trialN = [];
-Nall = 300;
-InfosN = [];
-for iii = 1:100
-    pdfN = [];
-    Indice = randsample([1:N],Nall);
-    
-    for f = 1:12
-        for n = 1:Nall
-            DR_trialN(n,f) = mean(output.rates_stim{f}(Indice(n),:));
-        end
-    end
-    
-    % 08/11/2017 attempt to linearly extrapolate a pdf.
-    edgesTotalN = 0:1: ceil(max(max(DR_trialN)));
-    [NtotalN,edgesTotalN] = histcounts(DR_trialN,edgesTotalN);
-    for i = 1:length(NtotalN)
-        if NtotalN(i) == 0
-            NtotalN(i) = NaN;
-        end
-    end
-    xaxisN = edgesTotalN(1:end-1);
-    % plot(xaxis,Ntotal)
-    % linear interpolation into infinite dataset
-    [xDataN, yDataN] = prepareCurveData( xaxisN, NtotalN );
-    vq1 = interp1(xDataN, yDataN, xaxisN);
-    pdfNall = vq1/sum(vq1);
-    % vq2 = interp1(xData, yData, xaxis,'spline');
-    % plot(xaxis,vq1)
-    % hold on
-    % plot(xaxis,vq2)
-    
-    
-    InfoN = 0;
-    for f= 1:12
-        [NcountN,edgesTotalN] = histcounts(DR_trialN(:,f),edgesTotalN);
-        [xDataN, yDataN] = prepareCurveData( xaxisN, NcountN );
-        vq2N = interp1(xDataN, yDataN, xaxisN);
-        pdfN(f,:) = vq2N/sum(vq2N);
-        for r = 1:length(pdfNall)
-            if  pdfN(f,r) ~=0  % pdfNall(r) > 0.001 &&
-                InfoN = InfoN + pdfN(f,r)*log2(pdfN(f,r)/pdfNall(r));
-            end
-        end
-    end
-    InfoN = InfoN/12;
-    
-%     InfoPandN = 0;
-%     for f = 1:12
-%         %     [NcountN,edgesTotalN] = histcounts(DR_trialN(:,f),edgesTotalN);
-%         %     [xDataN, yDataN] = prepareCurveData( xaxisN, NcountN );
-%         %     vq2N = interp1(xDataN, yDataN, xaxisN);
-%         %     pdfN(f,:) = vq2N/sum(vq2N);
-%         %     [NcountP,edgesTotalP] = histcounts(DR_trialP(:,f),edgesTotalP);
-%         %     [xDataP, yDataP] = prepareCurveData( xaxisP, NcountP );
-%         %     vq2P = interp1(xDataP, yDataP, xaxisP);
-%         %     pdfP(f,:) = vq2P/sum(vq2P);
-%         for r1 = 1:length(pdfPall)
-%             for r2 = 1:length(pdfNall)
-%                 if   pdfP(f,r1)*pdfN(f,r2) ~=0 %pdfPall(r1)*pdfNall(r2) > 0.001 &&
-%                     InfoPandN = InfoPandN + ...
-%                         pdfP(f,r1)*pdfN(f,r2)*log2( pdfP(f,r1)*pdfN(f,r2)...
-%                         /(pdfPall(r1)*pdfNall(r2)));
-%                 end
-%             end
-%         end
-%     end
-%     
-%     InfoPandN = InfoPandN/12;
-    InfosN = [InfosN InfoN];
-end
-% 08/11/2017 attempt to calculate pdf by histograms
-% % test = mean(DR_trial,1);
-% % edges = 0:1: floor(max(max(DR_trial)));
-% Nbins = 219;
-% % Ntotal = histogram(DR_trial,edges);
-% [Ntotal,edgesTotal] = histcounts(DR_trial,Nbins);
 % 
-% pdfPall =  Ntotal/sum(Ntotal);
+% clear all
+% load('SyncP_new.mat')
+% NP = size(output.rates_stim{1, 1},1);
+% DR_trialP = [];
+% for f = 1:12
+%     for n = 1:NP
+%         DR_trialP(n,f) = mean(output.rates_stim{f}(n,:));
+%     end
+% end
+% 
+% DR_trialP(find(DR_trialP>100)) = 0;
+% 
+% % 08/11/2017 attempt to linearly extrapolate a pdf.
+% edgesTotalP = 0:1: ceil(max(max(DR_trialP)));
+% [NtotalP,edgesTotalP] = histcounts(DR_trialP,edgesTotalP);
+% for i = 1:length(NtotalP)
+%     if NtotalP(i) == 0
+%         NtotalP(i) = NaN;
+%     end
+% end
+% xaxisP = edgesTotalP(1:end-1);
+% % plot(xaxis,Ntotal)
+% % linear interpolation into infinite dataset
+% [xDataP, yDataP] = prepareCurveData( xaxisP, NtotalP );
+% vq1 = interp1(xDataP, yDataP, xaxisP);
+% pdfPall = vq1/sum(vq1);
+% % vq2 = interp1(xData, yData, xaxis,'spline');
+% % plot(xaxis,vq1)
+% % hold on 
+% % plot(xaxis,vq2)
+% 
+% 
 % InfoP = 0;
 % for f= 1:12
-%     [Ncount,edges] = histcounts(DR_trial(:,f),Nbins);
-%     pdfP(f,:) = Ncount/sum(Ncount);
+%     [NcountP,edgesTotalP] = histcounts(DR_trialP(:,f),edgesTotalP);
+%     [xDataP, yDataP] = prepareCurveData( xaxisP, NcountP );
+%     vq2N = interp1(xDataP, yDataP, xaxisP);
+%     pdfP(f,:) = vq2N/sum(vq2N);
 %     for r = 1:length(pdfPall)
-%         if pdfPall(r) > 0.001 && pdfP(f,r) ~=0 
+%         if pdfP(f,r) ~=0 %  pdfPall(r) > 0.001 &&
 %         InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
 %         end
 %     end
 % end
-% % Ntotal = histogram(DR_trial,edges);
+% InfoP = InfoP/12;
 % 
+% 
+% load('SyncN_new.mat')
+% 
+% %for NM neurons, randomly select 22neurons
+% 
+% 
+% 
+% N = size(output.rates_stim{1, 1},1);
+% DR_trialN = [];
+% Nall = 300;
+% InfosN = [];
+% for iii = 1:100
+%     pdfN = [];
+%     Indice = randsample([1:N],Nall);
+%     
+%     for f = 1:12
+%         for n = 1:Nall
+%             DR_trialN(n,f) = mean(output.rates_stim{f}(Indice(n),:));
+%         end
+%     end
+%     
+%     % 08/11/2017 attempt to linearly extrapolate a pdf.
+%     edgesTotalN = 0:1: ceil(max(max(DR_trialN)));
+%     [NtotalN,edgesTotalN] = histcounts(DR_trialN,edgesTotalN);
+%     for i = 1:length(NtotalN)
+%         if NtotalN(i) == 0
+%             NtotalN(i) = NaN;
+%         end
+%     end
+%     xaxisN = edgesTotalN(1:end-1);
+%     % plot(xaxis,Ntotal)
+%     % linear interpolation into infinite dataset
+%     [xDataN, yDataN] = prepareCurveData( xaxisN, NtotalN );
+%     vq1 = interp1(xDataN, yDataN, xaxisN);
+%     pdfNall = vq1/sum(vq1);
+%     % vq2 = interp1(xData, yData, xaxis,'spline');
+%     % plot(xaxis,vq1)
+%     % hold on
+%     % plot(xaxis,vq2)
+%     
+%     
+%     InfoN = 0;
+%     for f= 1:12
+%         [NcountN,edgesTotalN] = histcounts(DR_trialN(:,f),edgesTotalN);
+%         [xDataN, yDataN] = prepareCurveData( xaxisN, NcountN );
+%         vq2N = interp1(xDataN, yDataN, xaxisN);
+%         pdfN(f,:) = vq2N/sum(vq2N);
+%         for r = 1:length(pdfNall)
+%             if  pdfN(f,r) ~=0  % pdfNall(r) > 0.001 &&
+%                 InfoN = InfoN + pdfN(f,r)*log2(pdfN(f,r)/pdfNall(r));
+%             end
+%         end
+%     end
+%     InfoN = InfoN/12;
+%     
+% %     InfoPandN = 0;
+% %     for f = 1:12
+% %         %     [NcountN,edgesTotalN] = histcounts(DR_trialN(:,f),edgesTotalN);
+% %         %     [xDataN, yDataN] = prepareCurveData( xaxisN, NcountN );
+% %         %     vq2N = interp1(xDataN, yDataN, xaxisN);
+% %         %     pdfN(f,:) = vq2N/sum(vq2N);
+% %         %     [NcountP,edgesTotalP] = histcounts(DR_trialP(:,f),edgesTotalP);
+% %         %     [xDataP, yDataP] = prepareCurveData( xaxisP, NcountP );
+% %         %     vq2P = interp1(xDataP, yDataP, xaxisP);
+% %         %     pdfP(f,:) = vq2P/sum(vq2P);
+% %         for r1 = 1:length(pdfPall)
+% %             for r2 = 1:length(pdfNall)
+% %                 if   pdfP(f,r1)*pdfN(f,r2) ~=0 %pdfPall(r1)*pdfNall(r2) > 0.001 &&
+% %                     InfoPandN = InfoPandN + ...
+% %                         pdfP(f,r1)*pdfN(f,r2)*log2( pdfP(f,r1)*pdfN(f,r2)...
+% %                         /(pdfPall(r1)*pdfNall(r2)));
+% %                 end
+% %             end
+% %         end
+% %     end
+% %     
+% %     InfoPandN = InfoPandN/12;
+%     InfosN = [InfosN InfoN];
+% end
+% % 08/11/2017 attempt to calculate pdf by histograms
+% % % test = mean(DR_trial,1);
+% % % edges = 0:1: floor(max(max(DR_trial)));
+% % Nbins = 219;
+% % % Ntotal = histogram(DR_trial,edges);
+% % [Ntotal,edgesTotal] = histcounts(DR_trial,Nbins);
+% % 
+% % pdfPall =  Ntotal/sum(Ntotal);
+% % InfoP = 0;
+% % for f= 1:12
+% %     [Ncount,edges] = histcounts(DR_trial(:,f),Nbins);
+% %     pdfP(f,:) = Ncount/sum(Ncount);
+% %     for r = 1:length(pdfPall)
+% %         if pdfPall(r) > 0.001 && pdfP(f,r) ~=0 
+% %         InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
+% %         end
+% %     end
+% % end
+% % % Ntotal = histogram(DR_trial,edges);
+% % 
 
 %% Analyzing ind ISI 19/03/2018
 
