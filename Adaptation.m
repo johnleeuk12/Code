@@ -121,6 +121,51 @@
 % histogram(output.VS(:,2),edges)
 
 
+%%  Studying FR joint distribution for SyncP SyncN and SyncM neurons. 03/19/2018
+
+clear all
+load('SyncP_new.mat')
+NP = size(output.rates_stim{1, 1},1);
+DR_trialP = [];
+for f = 1:12
+    for n = 1:NP
+        DR_trialP(n,f) = mean(output.rates_stim{f}(n,:));
+    end
+end
+
+load('SyncN_new.mat')
+NN = size(output.rates_stim{1, 1},1);
+DR_trialN = [];
+for f = 1:12
+    for n = 1:NN
+        DR_trialN(n,f) = mean(output.rates_stim{f}(n,:));
+    end
+end
+
+DR_trialN(randsample(1:305,5),:) = []; %randomly cutting data size to match SyncP neurons. 
+
+SyncPall = reshape(DR_trialP,[],1);
+SyncNall = reshape(DR_trialN,[],1);
+
+X = [SyncNall,SyncPall];
+edges = {0:4:ceil(max(max(X))) 0:4:ceil(max(max(X)))};
+hist3(X,edges)
+[CountData, Xedges,Yedges] = histcounts2(X(:,1),X(:,2),edges{1},edges{2});
+
+% linear interpolarization of Distribution
+
+
+Vq = interp2(CountData);
+
+
+
+
+
+
+
+
+
+
 %% Calculating MI 07/11/2017
 clear all
 load('SyncP_new.mat')
@@ -266,9 +311,39 @@ end
 % % Ntotal = histogram(DR_trial,edges);
 % 
 
+%% Analyzing ind ISI 19/03/2018
+
+clear all
+
+load('SyncP_new.mat')
+ISI_ind = {};
+for n = 1:25
+    for f = 1:12
+        ISI_ind{n,f} = horzcat(output.isi_rep{n}{f,:})*1e3;
+    end
+    
+end
+C = {};
+
+% edges = [[0:1:9] [10:5:90] [100:50:1000]];
+edges = [0:5:500];
+for n = 1:25
+    figure
+    for f = 2:2:12
+        [C{n,f}, edges] = histcounts(ISI_ind{n,f},edges);
+        plot(edges(2:end),C{n,f})
+        set(gca,'XScale','log')
+        hold on
+    end
+    legend('125ms', '62.5ms', '41.6ms','31.25ms', '25ms', '20ms');
+    hold off
+end
+
+%conclusion, ISI analysis really doesnt give much
 
 
 
+    
 %% Caculate MI with ISI and with VS
 clear all
 
