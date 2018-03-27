@@ -124,6 +124,8 @@
 %%  Studying FR joint distribution for SyncP SyncN and SyncM neurons. 03/19/2018
 
 clear all
+
+% loading and reorganizing data
 load('SyncP_new.mat')
 NP = size(output.rates_stim{1, 1},1);
 DR_trialP = [];
@@ -144,8 +146,8 @@ end
 
 DR_trialN(randsample(1:305,5),:) = []; %randomly cutting data size to match SyncP neurons. 
 
-DR_trialN(find(DR_trialN>100)) = 0;
-DR_trialP(find(DR_trialP>100)) = 0;
+DR_trialN(find(DR_trialN>150)) = 0;
+DR_trialP(find(DR_trialP>150)) = 0;
 % DR_trialN(find(DR_trialN == 0)) = NaN;
 % DR_trialP(find(DR_trialP == 0)) = NaN;
 
@@ -154,7 +156,7 @@ SyncNall = reshape(DR_trialN,[],1);
 
 X = [SyncNall,SyncPall];
 edges = {0:2:ceil(max(max(X))) 0:2:ceil(max(max(X)))};
-% hist3(X,edges)
+hist3(X,edges)
 [CountData, Xedges,Yedges] = histcounts2(X(:,1),X(:,2),edges{1},edges{2});
 % linear interpolarization of Distribution
 % Vqall = interp2(interp2(CountData,'cubic'),'cubic');
@@ -163,6 +165,7 @@ Vqall(find(Vqall<0)) = 0;
 pdfall = Vqall/sum(sum(Vqall));
 figure
 mesh(Vqall)
+
 
 
 % Do the same thing for all frequencies
@@ -212,10 +215,10 @@ for f = 1:10
 end
 
 
-DR_trialNM1(find(DR_trialNM1 == 0)) = NaN;
-DR_trialNM2(find(DR_trialNM2 == 0)) = NaN;
-% DR_trialNM1(find(DR_trialNM1>100)) = 0;
-% DR_trialNM2(find(DR_trialNM2>100)) = 0;
+% DR_trialNM1(find(DR_trialNM1 == 0)) = NaN;
+% DR_trialNM2(find(DR_trialNM2 == 0)) = NaN;
+% DR_trialNM1(find(DR_trialNM1>150)) = 0;
+% DR_trialNM2(find(DR_trialNM2>150)) = 0;
 
 
 
@@ -224,7 +227,7 @@ SyncNM2all = reshape(DR_trialNM2,[],1);
 
 XNM = [SyncNM1all,SyncNM2all];
 edges = {0:2:ceil(max(max(XNM))) 0:2:ceil(max(max(XNM)))};
-% hist3(X,edges)
+hist3(XNM,edges)
 [CountDataNM, Xedges,Yedges] = histcounts2(XNM(:,1),XNM(:,2),edges{1},edges{2});
 
 % linear interpolarization of Distribution
@@ -295,6 +298,7 @@ edgesTotalP = 0:2: ceil(max(max(DR_trialP)));
 % end
 
 
+
 plot(NtotalP)
 xq = 0:1: ceil(max(max(DR_trialP)));
 % linear interpolation into infinite dataset
@@ -306,15 +310,50 @@ pdfPall = vq1/sum(vq1);
 % plot(xaxis,vq1)
 % hold on 
 % plot(xaxis,vq2)
-vq2 = interp1(edgesTotalP(2:end),NtotalP,xq(2:end),'pchip');
-plot(vq2)
+% vq2 = interp1(edgesTotalP(2:end),NtotalP,xq(2:end),'pchip');
+% plot(vq2)
+
+
+%Gaussian kernel based estimation. 
+edgesTotalPgauss = 0:2: ceil(max(max(DR_trialP)));
+[NtotalPgauss,edgesTotalPgauss] = histcounts(DR_trialP,edgesTotalPgauss);
+xs = edgesTotalPgauss(1:end-1)+0.5;
+h = 1;
+
+% [vqKS,xi,bw] =
+% ksdensity(NtotalPgauss,xs,'Bandwidth',1,'BoundaryCorrection','reflection');
+% Offcial kernel density estimation, but I don't know how to use it yet.
+
+for i = 1:length(xs)
+    ys(i) = gaussian_kern_reg2(xs(i),xs,NtotalPgauss,h);
+end
+vqgauss = ys/sum(ys);
+
+%Compare
+% figure
+% plot(xs,vqgauss)
+% hold on
+% plot(pdfPall)
+% % plot(xs,vqKS)
+
+
+pdfPall = vqgauss;
 
 InfoP = 0;
 figure
 for f= 1:10
-    [NcountP,edgesTotalP] = histcounts(DR_trialP(:,f),edgesTotalP);
-%     NcountP(find(NcountP==0)) = NaN;
-    vq2N = interp1(edgesTotalP(2:end),NcountP,xq(2:end),'pchip');
+    %linear interpolation
+    %     [NcountP,edgesTotalP] = histcounts(DR_trialP(:,f),edgesTotalP);
+    % %     NcountP(find(NcountP==0)) = NaN;
+    %     vq2N = interp1(edgesTotalP(2:end),NcountP,xq(2:end),'pchip');
+    
+    % gaussian kernel
+    [NcountPgauss,edgesTotalPgauss] = histcounts(DR_trialP(:,f),edgesTotalPgauss);
+    for i = 1:length(xs)
+        vq2N(i) = gaussian_kern_reg(xs(i),xs,NcountPgauss,h);
+    end
+    
+    %below is common 
     vq2N(find(vq2N <0)) = 0;
     vq2N= [vq2N(2:end) 0];
     pdfP(f,:) = vq2N/sum(vq2N);
@@ -322,11 +361,19 @@ for f= 1:10
     hold on
     for r = 1:length(pdfPall)
         if pdfP(f,r) ~=0 && pdfPall(r) ~=0
-        InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
+            InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
         end
     end
 end
 InfoP = InfoP/12;
+
+
+
+
+
+
+
+
 % 
 % clear all
 % load('SyncP_new.mat')
