@@ -7,8 +7,8 @@ clear all
 
 %% Parameters
 global ICI_list
-% ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
-ICI_list = 5; % Puretone
+ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+% ICI_list = 5; % Puretone
 
  
 global tau_pE tau_pI kernel_time_constant
@@ -29,12 +29,12 @@ I_strength = 8.5; %nS
 % f = 10;
 adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
 adaptation.I = 1;
-PureTone = 1;
-
+PureTone = 0; %1 is on,0 is off
+figureon = 0;
     n=0;
 %     figure
-for f_E = 0 %[0 0.1 0.2 0.3 0.4]
-    for f_I = 0.4 %[0.1 :0.1 : 0.4]
+for f_E = [0. 0.1 0.2 0.3] %[0 0.1 0.2 0.3 0.4]
+    for f_I = [0.3 0.4 0.5] %[0.1 :0.1 : 0.4]
         for tau_pE =0.15 % 0.05:0.02:0.20
             for tau_pI = 0.10 %0.05:0.02:0.20
 
@@ -98,7 +98,9 @@ for f_E = 0 %[0 0.1 0.2 0.3 0.4]
 end
 
 % save('puretoneModel2.mat','UnitInfo') 
-% save('SyncPfModel.mat','UnitInfo') 
+save('SyncPModel_3.mat','UnitInfo') 
+
+if figureon == 1
 Hz_list = [];
 for i = 1:length(ICI_list)
     Hz_list = [Hz_list round(1000/ICI_list(i))];
@@ -154,6 +156,7 @@ else
     %                 hold on
     %                 pause
     pause(0.1)
+end
 end
 
 function out = run_model(IE_delay,E_strength,I_strength,f,f_E,f_I,adaptation,PureTone)
