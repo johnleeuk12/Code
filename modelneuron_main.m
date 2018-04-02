@@ -1,4 +1,4 @@
-function modelneuron_main()
+ function modelneuron_main()
 
 clear all
 
@@ -30,11 +30,11 @@ I_strength = 8.5; %nS
 adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
 adaptation.I = 1;
 PureTone = 0; %1 is on,0 is off
-figureon = 0;
+figureon = 1;
     n=0;
 %     figure
-for f_E = [0. 0.1 0.2 0.3] %[0 0.1 0.2 0.3 0.4]
-    for f_I = [0.3 0.4 0.5] %[0.1 :0.1 : 0.4]
+for f_E = 0.1  %[0 0.1 0.2 0.3 0.4]
+    for f_I = 0.4 %[0.1 :0.1 : 0.4]
         for tau_pE =0.15 % 0.05:0.02:0.20
             for tau_pI = 0.10 %0.05:0.02:0.20
 
@@ -153,7 +153,7 @@ else
     plot(Hz_list,UnitInfo.Info(p).Output.VS,'linewidth',2.0);
     set(gca, 'FontSize', 16)
     axis([0,50,0.5,1]);
-    %                 hold on
+                    hold on
     %                 pause
     pause(0.1)
 end
@@ -467,7 +467,7 @@ sigma = 0.01    ;
 Gsra = zeros(1,length(Ge));
 % tau_sra = 0.1; %100ms
 % delta_sra = 1e-9;
-delta_sra = 20*1e-9;
+delta_sra = 10*1e-9;
 
 % f_sra = 0.998;
 f_sra = 0.995;
