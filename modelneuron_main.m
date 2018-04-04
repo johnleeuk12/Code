@@ -55,6 +55,8 @@ for f_E = 0.1  %[0 0.1 0.2 0.3 0.4]
         output.mean_discharge_rate.error(f)  = out.discharge_rate.error;
         output.rate{f} = out.rate;
         output.rate_brut{f} = out.rate_brut;
+        output.rate_total{f} = out.rate_total;
+        output.rates_stim{f} = out.rates_stim;
         %             output.adaptation.E{f} = out.E_strength;
         %             output.adaptation.I{f} = out.I_strength;
         %             output.adaptation.E_I{f} = out.I_strength-out.E_strength;
@@ -98,7 +100,7 @@ for f_E = 0.1  %[0 0.1 0.2 0.3 0.4]
 end
 
 % save('puretoneModel2.mat','UnitInfo') 
-save('SyncPModel_3.mat','UnitInfo') 
+save('SyncPMdlInfo.mat','UnitInfo') 
 
 if figureon == 1
 Hz_list = [];
@@ -190,7 +192,7 @@ freq2=1/(step*ipi);
 
 %% Modeling Conductance and adaptation.
 
-nb_rep = 30;
+nb_rep = 300;
 E_str(1) = E_strength;
 I_str(1) = I_strength;
 E_strength_mean = [];
@@ -418,6 +420,8 @@ out.Fanofactor = std(SpikeCount)^2/mean(SpikeCount);
 out.var_ISI = std(isi);
 
 out.rate_brut = rate_av;
+out.rate_total = rate_total;
+out.rates_stim = rate_total(:,PRE+1:PRE+STIM+100);
 out.rate = ys;
 out.VS = vector;
 out.spikes_per_click = spikes_per_click ;
@@ -467,7 +471,7 @@ sigma = 0.01    ;
 Gsra = zeros(1,length(Ge));
 % tau_sra = 0.1; %100ms
 % delta_sra = 1e-9;
-delta_sra = 10*1e-9;
+delta_sra = 0*1e-9;
 
 % f_sra = 0.998;
 f_sra = 0.995;

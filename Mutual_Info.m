@@ -5,7 +5,7 @@ function Mutual_info()
 
 clear all
 
-bw = 0.6:0.2:4;
+bw = 1; %0.6:0.2:4;
 % Moyen = zeros(2,length(bw));
 % Erreurs =zeros(2,length(bw));
 % parfor i = 1:length(bw)
@@ -21,24 +21,24 @@ bw = 0.6:0.2:4;
 % save('MI_data.mat', 'Output')
 % 
 % 
-figure
-errorbar(bw,Output.mean(1,:),Output.errors(1,:))
-hold on
-errorbar(bw,Output.mean(2,:),Output.errors(2,:))
+% figure
+% errorbar(bw,Output.mean(1,:),Output.errors(1,:))
+% hold on
+% errorbar(bw,Output.mean(2,:),Output.errors(2,:))
 
 
 Ind_mean = zeros(3,length(bw));
 Ind_error = zeros(3,length(bw));
-parfor i = 1:length(bw)
-    for d = 1:3
-        Out = MI_ind(bw(i),d,10)
+for i = 1:length(bw)
+    for d = 1:6
+        Out = MI_ind(bw(i),d,10);
         Ind_mean(d,i) = Out.mean;
         Ind_error(d,i) = Out.error;
     end
 end
 
 figure
-for d = 1:3
+for d = 1:6
 errorbar(bw,Ind_mean(d,:),Ind_error(d,:));
 hold on
 end
@@ -478,11 +478,21 @@ if d ==1
     load('SyncP_new.mat')
 elseif d==2
     load('SyncN_new.mat')
-else
+elseif d==3
     load('SyncNM_new.mat')
+elseif d==4
+    load('SyncPMdlInfo.mat')
+    output = UnitInfo.Info.Output;
+elseif d==5
+    load('SyncNMdlInfo.mat')
+    output = UnitInfo.Info.Output;
+else 
+    load('SyncNMMdlInfo.mat')
+    output = UnitInfo.Info.Output;
 end
 % NP = size(output.rates_stim{1, 1},1);
 MI_P = [];
+
 for trial = 1:Ntrial
     disp(trial)
     Sample_ind = randsample(1:size(output.rates_stim{1, 1},1),250);
@@ -499,76 +509,19 @@ for trial = 1:Ntrial
     DR_trialP(find(DR_trialP>100)) = 0;
     
     % 08/11/2017 attempt to linearly extrapolate a pdf.
-    edgesTotalP = 0:2: ceil(max(max(DR_trialP)));
-    [NtotalP,edgesTotalP] = histcounts(DR_trialP,edgesTotalP);
-    % for i = 1:length(NtotalP)
-    %     if NtotalP(i) == 0
-    %         NtotalP(i) = NaN;
-    %     end
-    % end
-    
-    % histogram(DR_trialP,edgesTotalP)
-    
-    % plot(NtotalP)
-    xq = 0:1: ceil(max(max(DR_trialP)));
-    % linear interpolation into infinite dataset
-    vq1 = interp1(edgesTotalP(2:end),NtotalP,xq(2:end),'pchip');
-    vq1(find(vq1 <0)) = 0;
-    vq1 = [vq1(2:end) 0];
-    pdfPall = vq1/sum(vq1);
-    % vq2 = interp1(xData, yData, xaxis,'spline');
-    % plot(xaxis,vq1)
-    % hold on
-    % plot(xaxis,vq2)
-    % vq2 = interp1(edgesTotalP(2:end),NtotalP,xq(2:end),'pchip');
-    % plot(vq2)
-    
-    
-    %Gaussian kernel based estimation.
-    edgesTotalPgauss = 0:1: ceil(max(max(DR_trialP)));
-    % [NtotalPgauss,edgesTotalPgauss] = histcounts(DR_trialP,edgesTotalPgauss);
-    xs = edgesTotalPgauss(1:end-1)+0.5;
-    h = 1.;
-    
-    
+
     %Kernel density estimation
     SyncPall = reshape(DR_trialP,[],1);
     [vqKS,xi] = ksdensity(SyncPall,0:0.5: ceil(max(max(DR_trialP)))-1,'Bandwidth',bw);
-    % Offcial kernel density estimation, but I don't know how to use it yet.
-    
-    
-    %
-    % for i = 1:length(xs)
-    %     ys(i) = gaussian_kern_reg2(xs(i),xs,NtotalPgauss,h);
-    % end
-    % vqgauss = ys/sum(ys);
-    
-    %Compare
-    % figure
-    % plot(xs,vqgauss)
-    % hold on
-    % plot(xq(2:end),pdfPall)
-    % plot(xi,vqKS)
-    
-    
-    % pdfPall = vqgauss;
+
     pdfPall = vqKS/sum(vqKS);
     
     InfoP = 0;
-    figure
+%     figure
     Hz_list = 8:4:48;
+    pdfP = [];
     for f= 1:10
-        %linear interpolation
-        %     [NcountP,edgesTotalP] = histcounts(DR_trialP(:,f),edgesTotalP);
-        % %     NcountP(find(NcountP==0)) = NaN;
-        %     vq2N = interp1(edgesTotalP(2:end),NcountP,xq(2:end),'pchip');
-        
-        % %     gaussian kernel
-        %     [NcountPgauss,edgesTotalPgauss] = histcounts(DR_trialP(:,f),edgesTotalPgauss);
-        %     for i = 1:length(xs)
-        %         vq2N(i) = gaussian_kern_reg2(xs(i),xs,NcountPgauss,h);
-        %     end
-        %
+
         % %     kernel density
         vq2N = ksdensity(DR_trialP(:,f),xi,'Bandwidth',bw);
         %below is common
@@ -576,7 +529,7 @@ for trial = 1:Ntrial
         vq2N= [vq2N(2:end) 0];
         pdfP(f,:) = vq2N/sum(vq2N);
         if mod(f,2) ==1
-        plot(pdfP(f,:),'DisplayName', [num2str(Hz_list(f)) 'Hz'])
+%         plot(pdfP(f,:),'DisplayName', [num2str(Hz_list(f)) 'Hz'])
         hold on
         end
         for r = 1:length(pdfPall)
@@ -591,6 +544,118 @@ end
 
 Out.mean = mean(MI_P);
 Out.error = std(MI_P);
+
+
+
+
+% for trial = 1:Ntrial
+%     disp(trial)
+%     Sample_ind = randsample(1:size(output.rates_stim{1, 1},1),250);
+%     NP = 250;
+%     
+%     
+%     DR_trialP = [];
+%     for f = 1:10
+%         for n = 1:NP
+%             DR_trialP(n,f) = mean(output.rates_stim{f+1}(Sample_ind(n),:));
+%         end
+%     end
+%     
+%     DR_trialP(find(DR_trialP>100)) = 0;
+%     
+%     % 08/11/2017 attempt to linearly extrapolate a pdf.
+%     edgesTotalP = 0:2: ceil(max(max(DR_trialP)));
+%     [NtotalP,edgesTotalP] = histcounts(DR_trialP,edgesTotalP);
+%     % for i = 1:length(NtotalP)
+%     %     if NtotalP(i) == 0
+%     %         NtotalP(i) = NaN;
+%     %     end
+%     % end
+%     
+%     % histogram(DR_trialP,edgesTotalP)
+%     
+%     % plot(NtotalP)
+%     xq = 0:1: ceil(max(max(DR_trialP)));
+%     % linear interpolation into infinite dataset
+%     vq1 = interp1(edgesTotalP(2:end),NtotalP,xq(2:end),'pchip');
+%     vq1(find(vq1 <0)) = 0;
+%     vq1 = [vq1(2:end) 0];
+%     pdfPall = vq1/sum(vq1);
+%     % vq2 = interp1(xData, yData, xaxis,'spline');
+%     % plot(xaxis,vq1)
+%     % hold on
+%     % plot(xaxis,vq2)
+%     % vq2 = interp1(edgesTotalP(2:end),NtotalP,xq(2:end),'pchip');
+%     % plot(vq2)
+%     
+%     
+%     %Gaussian kernel based estimation.
+%     edgesTotalPgauss = 0:1: ceil(max(max(DR_trialP)));
+%     % [NtotalPgauss,edgesTotalPgauss] = histcounts(DR_trialP,edgesTotalPgauss);
+%     xs = edgesTotalPgauss(1:end-1)+0.5;
+%     h = 1.;
+%     
+%     
+%     %Kernel density estimation
+%     SyncPall = reshape(DR_trialP,[],1);
+%     [vqKS,xi] = ksdensity(SyncPall,0:0.5: ceil(max(max(DR_trialP)))-1,'Bandwidth',bw);
+%     % Offcial kernel density estimation, but I don't know how to use it yet.
+%     
+%     
+%     %
+%     % for i = 1:length(xs)
+%     %     ys(i) = gaussian_kern_reg2(xs(i),xs,NtotalPgauss,h);
+%     % end
+%     % vqgauss = ys/sum(ys);
+%     
+%     %Compare
+%     % figure
+%     % plot(xs,vqgauss)
+%     % hold on
+%     % plot(xq(2:end),pdfPall)
+%     % plot(xi,vqKS)
+%     
+%     
+%     % pdfPall = vqgauss;
+%     pdfPall = vqKS/sum(vqKS);
+%     
+%     InfoP = 0;
+% %     figure
+%     Hz_list = 8:4:48;
+%     for f= 1:10
+%         %linear interpolation
+%         %     [NcountP,edgesTotalP] = histcounts(DR_trialP(:,f),edgesTotalP);
+%         % %     NcountP(find(NcountP==0)) = NaN;
+%         %     vq2N = interp1(edgesTotalP(2:end),NcountP,xq(2:end),'pchip');
+%         
+%         % %     gaussian kernel
+%         %     [NcountPgauss,edgesTotalPgauss] = histcounts(DR_trialP(:,f),edgesTotalPgauss);
+%         %     for i = 1:length(xs)
+%         %         vq2N(i) = gaussian_kern_reg2(xs(i),xs,NcountPgauss,h);
+%         %     end
+%         %
+%         % %     kernel density
+%         vq2N = ksdensity(DR_trialP(:,f),xi,'Bandwidth',bw);
+%         %below is common
+%         vq2N(find(vq2N <0)) = 0;
+%         vq2N= [vq2N(2:end) 0];
+%         pdfP(f,:) = vq2N/sum(vq2N);
+%         if mod(f,2) ==1
+% %         plot(pdfP(f,:),'DisplayName', [num2str(Hz_list(f)) 'Hz'])
+%         hold on
+%         end
+%         for r = 1:length(pdfPall)
+%             if pdfP(f,r) ~=0 && pdfPall(r) ~=0
+%                 InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
+%             end
+%         end
+%     end
+%     InfoP = InfoP/10;
+%     MI_P = [MI_P InfoP];
+% end
+% 
+% Out.mean = mean(MI_P);
+% Out.error = std(MI_P);
 
 
 function ISI_analy()
