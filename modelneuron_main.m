@@ -24,8 +24,8 @@ kernel_time_constant = 0.005;
 
 
 IE_delay = 5; %ms
-E_strength = 4.5; %nS
-I_strength = 8.5; %nS
+E_strength = 3.; %nS
+I_strength = 5.5; %nS
 % f = 10;
 adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
 adaptation.I = 1;
@@ -100,7 +100,7 @@ for f_E = 0.1  %[0 0.1 0.2 0.3 0.4]
 end
 
 % save('puretoneModel2.mat','UnitInfo') 
-save('SyncPMdlInfo.mat','UnitInfo') 
+save('SyncNMMdlInfo.mat','UnitInfo') 
 
 if figureon == 1
 Hz_list = [];
@@ -394,7 +394,7 @@ discharge_rate.error = ts(2)*SEM;
 
 
 xs = 1:total_time;
-h = 10; %kernal bandwidth. determines the shape of the function
+h = 12; %kernal bandwidth. determines the shape of the function
 for i = 1:total_time
     ys(i)=gaussian_kern_reg(xs(i),xs,rate_av,h);
 end
