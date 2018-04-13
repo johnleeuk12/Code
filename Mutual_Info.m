@@ -28,24 +28,38 @@ d = 0;
 % errorbar(bw,Output.mean(2,:),Output.errors(2,:))
 
 % 
-Ind_mean = zeros(6,length(bw));
-Ind_error = zeros(6,length(bw));
+% Ind_mean = zeros(6,length(bw));
+% Ind_error = zeros(6,length(bw));
+% parfor i = 1:length(bw)
+%     for d = 1:6
+%         Out = MI_ind(bw(i),d,10);
+%         Ind_mean(d,i) = Out.mean;
+%         Ind_error(d,i) = Out.error;
+%     end
+% end
+% 
+% figure
+% for d = 1:6
+%     errorbar(bw,Ind_mean(d,:),Ind_error(d,:));
+%     hold on
+% end
+
+
 parfor i = 1:length(bw)
-    for d = 1:6
-        Out = MI_ind(bw(i),d,10);
-        Ind_mean(d,i) = Out.mean;
-        Ind_error(d,i) = Out.error;
+    Out = MI_amplitude(bw(i),100);
+    for t = 1:4
+        Ind_mean(t,i) = Out.mean{t};
+        Ind_error(t,i) = Out.error{t};
     end
+
 end
 
 figure
-for d = 1:6
-    errorbar(bw,Ind_mean(d,:),Ind_error(d,:));
+for t = 1:4
+    errorbar(bw,Ind_mean(t,:),Ind_error(t,:))
     hold on
+    
 end
-
-
-
 
 function Out = MI_joint(bw,d)
 %%  Studying FR joint distribution for SyncP SyncN and SyncM neurons. 03/19/2018
@@ -682,6 +696,93 @@ Out.error = std(MI_P);
 % Out.error = std(MI_P);
 
 
+%% adding amplitude db
+function Out = MI_amplitude(bw,Ntrial)
+
+load('SyncPMdlInfo.mat')
+outputP = UnitInfo.Info.Output;
+load('SyncNMdlInfo.mat')
+outputN = UnitInfo.Info.Output;
+
+db_effect = -14.9:0.1:15;
+db_effect = ceil(db_effect);
+NP = 250;
+MI_P = [];
+MI_N = [];
+MI_1 = [];
+MI_2 = [];
+
+for trial = 1:Ntrial
+    disp(trial)
+    
+    Sample_ind = randsample((1:300),NP);
+    for n = 1:NP
+        for f = 1:10
+            DR_P(n,f) = mean(outputP.rates_stim{f}(Sample_ind(n),:)) + db_effect(Sample_ind(n))+randn*0.5;
+            DR_N(n,f) = mean(outputN.rates_stim{f}(Sample_ind(n),:)) + db_effect(Sample_ind(n))+randn*0.5;
+        end
+    end
+    
+    
+    DR1 = DR_P-DR_N;
+    DR2 = DR_P+DR_N;
+    
+    InfoP = MI_calc(DR_P,bw);
+    InfoN = MI_calc(DR_N,bw);
+    Info1 = MI_calc(DR1,bw);
+    Info2 = MI_calc(DR2,bw);
+    
+    MI_P = [MI_P InfoP];
+    MI_N = [MI_N InfoN];
+    MI_1 = [MI_1 Info1];
+    MI_2 = [MI_2 Info2];
+end
+
+Out.mean{1} = mean(MI_P);
+Out.mean{2} = mean(MI_N);
+Out.mean{3} = mean(MI_1);
+Out.mean{4} = mean(MI_2);
+
+Out.error{1} = std(MI_P);
+Out.error{2} = std(MI_N);
+Out.error{3} = std(MI_1);
+Out.error{4} = std(MI_2);
+
+
+
+function Info = MI_calc(DR_P,bw)
+
+    SyncPall = reshape(DR_P,[],1);
+    [vqKS,xi] = ksdensity(SyncPall,0:0.5: ceil(max(max(DR_P)))-1,'Bandwidth',bw);
+    
+    pdfPall = vqKS/sum(vqKS);
+    
+    InfoP = 0;
+    %     figure
+    Hz_list = 8:4:48;
+    pdfP = [];
+    for f= 1:10
+        
+        % %     kernel density
+        vq2N = ksdensity(DR_P(:,f),xi,'Bandwidth',bw);
+        %below is common
+        vq2N(find(vq2N <0)) = 0;
+        vq2N= [vq2N(2:end) 0];
+        pdfP(f,:) = vq2N/sum(vq2N);
+        if mod(f,2) ==1
+            %         plot(pdfP(f,:),'DisplayName', [num2str(Hz_list(f)) 'Hz'])
+            hold on
+        end
+        for r = 1:length(pdfPall)
+            if pdfP(f,r) ~=0 && pdfPall(r) ~=0
+                InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
+            end
+        end
+    end
+    Info = InfoP/10;
+
+
+    
 function ISI_analy()
 %% Analyzing ind ISI 19/03/2018
 
