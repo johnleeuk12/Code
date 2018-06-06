@@ -5,8 +5,9 @@ function Mutual_info()
 
 clear all
 
-bw = 0.6:0.2:4;
-d = 0;
+% bw = 0.6:0.2:4;
+bw = 1.4;
+% d = 1;
 % Moyen = zeros(2,length(bw));
 % Erreurs =zeros(2,length(bw));
 % parfor i = 1:length(bw)
@@ -26,24 +27,24 @@ d = 0;
 % errorbar(bw,Output.mean(1,:),Output.errors(1,:))
 % hold on
 % errorbar(bw,Output.mean(2,:),Output.errors(2,:))
-
 % 
-% Ind_mean = zeros(6,length(bw));
-% Ind_error = zeros(6,length(bw));
-% parfor i = 1:length(bw)
-%     for d = 1:6
-%         Out = MI_ind(bw(i),d,10);
-%         Ind_mean(d,i) = Out.mean;
-%         Ind_error(d,i) = Out.error;
-%     end
-% end
+% 
+% % Ind_mean = zeros(6,length(bw));
+% % Ind_error = zeros(6,length(bw));
+% % parfor i = 1:length(bw)
+% %     for d = 1:6
+% %         Out = MI_ind(bw(i),d,10);
+% %         Ind_mean(d,i) = Out.mean;
+% %         Ind_error(d,i) = Out.error;
+% %     end
+% % end
 % 
 % figure
 % for d = 1:6
 %     errorbar(bw,Ind_mean(d,:),Ind_error(d,:));
 %     hold on
 % end
-
+% 
 
 parfor i = 1:length(bw)
     Out = MI_amplitude(bw(i),50);
@@ -55,8 +56,9 @@ parfor i = 1:length(bw)
 end
 
 figure
-for t = 1:4
-    errorbar(bw,Ind_mean(t,:),Ind_error(t,:))
+for t = 1:6
+    errorbar(t,Ind_mean(t,:),Ind_error(t,:))
+    bar(t,Ind_mean(t,:));
     hold on
     
 end
@@ -726,10 +728,11 @@ for trial = 1:Ntrial
         end
     end
     
-    
+    % Change here to compare different combinations 
     DR1 = DR_P-DR_N;
     DR2 = DR_P+DR_N;
-    
+    DR_P = DR_P - DR_P;
+    DR_N = DR_N - DR_N;
     InfoP = MI_calc(DR_P,bw);
     InfoN = MI_calc(DR_N,bw);
     Info1 = MI_calc(DR1,bw);

@@ -7,10 +7,10 @@ function out=LIFmodel_basic() %IE_delay, E_strength, IE_ratio)
 %IE_delay:delay in milliseconds between excitation and inhibition
 
 IE_delay = 5.; % in ms
-E_strength = 4.5; % in nS
-IE_ratio = 5;
+E_strength = 2; % in nS
+% IE_ratio = 5;
 
-I_strength=8.5;  %IE_ratio*E_strength;
+I_strength=10;  %IE_ratio*E_strength;
 kernel_time_constant=.005;  %time constant of 5 ms
 jitter_magnitude=1; % Temporal jitter
 step=.0001; %.1 ms duration  (temporal increment for running simulation)

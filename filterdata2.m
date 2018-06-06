@@ -9,7 +9,7 @@ clear all
 %% file info
 
 Sync = 1; %or 0 for Nsync
-Positive = 0; % or 1 for Negative
+Positive = -1; % or 1 for Negative
 StimType = 12; % or 20
 putfigure = 1;
 
@@ -708,7 +708,7 @@ if putfigure == 1
     titre = ['RHO= ' num2str(RHO) ', p value = ' num2str(PVAL)];
     figure
     subplot(2,3,2)
-    % shadedErrorBar(Hz_list,output.meanVS,output.errorVS,{'Color',color})
+%     shadedErrorBar(Hz_list,output.meanVS,output.errorVS,{'Color',color})
     errorbar(Hz_list,output.meanVS,output.errorVS,'color',color,'LineWidth',1.7)
     xlabel('Repetition rate (Hz)')
     ylabel('Firing rate (Spikes/sec)')

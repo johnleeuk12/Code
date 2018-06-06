@@ -24,7 +24,7 @@ for i = 2:4
     
     SyncInfo = UnitInfo;
     Sync = 1; %or 0 for Nsync
-    Positive = 1; % or 1 for Negative
+    Positive = -1; % or 1 for Negative
     StimType = 12; % or 20
     
     % for i = 2:4
@@ -164,7 +164,7 @@ for i = 2:4
                         output.rates_pre{nn,1} = rate_total(:,PREstim_duration*1000-99:PREstim_duration*1000);
                         
                     end
-                    
+                    median_spike(nn) = median(spikes_pooled)+PREstim_duration;
                     % plotting individual neurons
                     xs = 1:400;
                     h = 10;

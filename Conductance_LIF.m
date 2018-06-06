@@ -4,7 +4,9 @@ function Out = Conductance_LIF()
 
 %% Parameters
 global ICI_list
-ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]; % [20.8333 25 31.25 41.6667 62.5 125];%[20 30 40 50 60 80 100]; %[250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+% ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]; % [20.8333 25 31.25 41.6667 62.5 125];%[20 30 40 50 60 80 100]; %[250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+ICI_list = 2; %puretone
+
 IE_delay = 5; %ms
 E_strength = 4.5; %:0.3:4.8; %1.5:0.3:6.; % in nS 3.5 for Sync+
 I_strength = 8.5; %8.5; %:0.1:1.9;
@@ -18,6 +20,7 @@ n = 0;
 %% global puretone
 global pureT
 pureT = 0;
+plot_figure = 1;
 
 global tau_pE tau_pI
 tau_pE = 0.15;
@@ -31,185 +34,193 @@ kernel_time_constant = 0.005;
 
 % for tau_pE = 0.15
 
-
-for f_DI = 1.2
+tic
+for f_DI = 0.6
     %         for kernel_time_constant = [0.005 0.010 0.020 0.040]
     %     for  f_DE = 0.7
     for f_DE = 0.9
         %             for tau_pI = 0.10:0.01:0.2
-        tic
-        pp = pp+1;
-        disp(pp)
-        output = {};
-        output.raster.stim = [];
-        output.raster.rep = [];
-        output.raster.spikes = [];
-        output.spiketime = {};
-        for f = 1:length(ICI_list)
-            
-            out = run_model(IE_delay,E_strength,I_strength,f,f_DE,f_DI);
-            output.raster.stim = [output.raster.stim out.raster.stim];
-            output.raster.rep = [output.raster.rep out.raster.rep];
-            output.raster.spikes = [output.raster.spikes out.raster.spikes];
-            output.spiketime{f} = out.raster.spikes;
-            output.VS(f) = out.VS;
-%             output.VS_pop(f,:) = out.vector;
-            output.mean_discharge_rate.mean(f) = out.discharge_rate.mean;
-            output.mean_discharge_rate.error(f)  = out.discharge_rate.error;
-            output.rate{f} = out.rate;
-            output.rate_brut{f} = out.rate_brut;
-            output.adaptation.E{f} = out.E_strength;
-            output.adaptation.I{f} = out.I_strength;
-            output.adaptation.E_I{f} = out.I_strength-out.E_strength;
-            output.adaptation.E_I{f} = output.adaptation.E_I{f}(1:end-1);
-            output.spikes_per_click{f} = out.spikes_per_click;
-            output.time_period{f} = out.time_period;
-            output.net_positivePclick{f} = out.net_positivePclick;
-            output.net_negativePclick{f} = out.net_negativePclick;
-            output.Fanofactor(f) = out.Fanofactor;
-            output.var_ISI(f) = out.var_ISI;
-            %                     for t = 1:length(output.adaptation.E_I{f})
-            %                         output.product{f}(t) = output.adaptation.E_I{f}(t)*output.time_period{f}.mean(t);
-            %                     end
-        end
-        %         figure
-        %         plot(output.spikes_per_click{1}.xaxis,output.product{1})
-        %         hold on
-        %         plot(output.spikes_per_click{2}.xaxis,output.product{2})
-        %         plot(output.spikes_per_click{3}.xaxis,output.product{3})
-        
-        
-        %                 plot(output.rate{1},'linewidth', 2.0)
-        %                 title(['f_DE = ' num2str(f_DE) ', f_DI = ' num2str(f_DI)])
-        %                 pause(0.3);
-        
-        n = n+1;
-        
-        UnitInfo.List(n,1) = f_DE;
-        UnitInfo.List(n,2) = f_DI;
-        UnitInfo.List(n,3) = tau_pE;
-        UnitInfo.List(n,4) = tau_pI;
-        UnitInfo.List(n,5) = E_strength;
-        UnitInfo.List(n,6) = I_strength;
-        UnitInfo.Info(n).Output = output;
-        %Analysis
-        counter1 = 0;
-        counter2 = 0;
-        UnitInfo.Info(n).Sync = 0;
-        UnitInfo.Info(n).Significant_rate = 0;
-        for f = 1:length(ICI_list)
-            if output.VS(f) >0.1
-                counter1 = counter1 + 1;
-            else
+        for noise = 4 % % noise = 0:2:16;
+            for jitter = 1
+                
+                for trial_nb = 1
+                
+                pp = pp+1;
+                disp(pp)
+                output = {};
+                output.raster.stim = [];
+                output.raster.rep = [];
+                output.raster.spikes = [];
+                output.spiketime = {};
+                for f = 1:length(ICI_list)
+                    
+                    out = run_model(IE_delay,E_strength,I_strength,f,f_DE,f_DI,noise,jitter);
+                    output.raster.stim = [output.raster.stim out.raster.stim];
+                    output.raster.rep = [output.raster.rep out.raster.rep];
+                    output.raster.spikes = [output.raster.spikes out.raster.spikes];
+                    output.spiketime{f} = out.raster.spikes;
+                    output.VS(f) = out.VS;
+                    %             output.VS_pop(f,:) = out.vector;
+                    output.mean_discharge_rate.mean(f) = out.discharge_rate.mean;
+                    output.mean_discharge_rate.error(f)  = out.discharge_rate.error;
+                    output.rate{f} = out.rate;
+                    output.rate_brut{f} = out.rate_brut;
+                    output.adaptation.E{f} = out.E_strength;
+                    output.adaptation.I{f} = out.I_strength;
+                    output.adaptation.E_I{f} = out.I_strength-out.E_strength;
+                    output.adaptation.E_I{f} = output.adaptation.E_I{f}(1:end-1);
+                    output.spikes_per_click{f} = out.spikes_per_click;
+                    output.time_period{f} = out.time_period;
+                    output.net_positivePclick{f} = out.net_positivePclick;
+                    output.net_negativePclick{f} = out.net_negativePclick;
+                    output.Fanofactor(f) = out.Fanofactor;
+                    output.var_ISI(f) = out.var_ISI;
+                    %                     for t = 1:length(output.adaptation.E_I{f})
+                    %                         output.product{f}(t) = output.adaptation.E_I{f}(t)*output.time_period{f}.mean(t);
+                    %                     end
+                end
+                %         figure
+                %         plot(output.spikes_per_click{1}.xaxis,output.product{1})
+                %         hold on
+                %         plot(output.spikes_per_click{2}.xaxis,output.product{2})
+                %         plot(output.spikes_per_click{3}.xaxis,output.product{3})
+                
+                
+                %                 plot(output.rate{1},'linewidth', 2.0)
+                %                 title(['f_DE = ' num2str(f_DE) ', f_DI = ' num2str(f_DI)])
+                %                 pause(0.3);
+                
+                n = n+1;
+                
+                UnitInfo.List(n,1) = f_DE;
+                UnitInfo.List(n,2) = f_DI;
+                UnitInfo.List(n,3) = tau_pE;
+                UnitInfo.List(n,4) = tau_pI;
+                UnitInfo.List(n,5) = E_strength;
+                UnitInfo.List(n,6) = I_strength;
+                UnitInfo.Info(n).Output = output;
+                %Analysis
                 counter1 = 0;
-            end
-            if counter1 == 3
-                UnitInfo.Info(n).Sync = 1; %Sync
-            end
-            if output.mean_discharge_rate.mean(f) - 2*output.mean_discharge_rate.error(f)>0
-                counter2 = counter2 + 1;
-            else
                 counter2 = 0;
-            end
-            if counter2 == 3
-                UnitInfo.Info(n).Significant_rate = 1;% significant rate response
+                UnitInfo.Info(n).Sync = 0;
+                UnitInfo.Info(n).Significant_rate = 0;
+                for f = 1:length(ICI_list)
+                    if output.VS(f) >0.1
+                        counter1 = counter1 + 1;
+                    else
+                        counter1 = 0;
+                    end
+                    if counter1 == 3
+                        UnitInfo.Info(n).Sync = 1; %Sync
+                    end
+                    if output.mean_discharge_rate.mean(f) - 2*output.mean_discharge_rate.error(f)>0
+                        counter2 = counter2 + 1;
+                    else
+                        counter2 = 0;
+                    end
+                    if counter2 == 3
+                        UnitInfo.Info(n).Significant_rate = 1;% significant rate response
+                    end
+                end
+                %         if length(ICI_list) == 12
+                %             new_ICI_list = ICI_list; %(1:end-1);
+                %             new_all_mean_rate_stim = output.mean_discharge_rate.mean(1:end-1);
+                %             %     else
+                %             %         new_ICI_list = ICI_list(4:end);
+                %             %         new_all_mean_rate_stim = all_mean_rate_stim(4:end);
+                %         end
+                new_ICI_list = ICI_list;
+                new_all_mean_rate_stim = output.mean_discharge_rate.mean; %(1:end-1);
+                
+                [RHO,PVAL] = corr(new_ICI_list.',new_all_mean_rate_stim.','Type','Spearman')
+                UnitInfo.Info(n).Rho = RHO;
+                UnitInfo.Info(n).pval = PVAL;
+                if PVAL <0.05
+                    if RHO > 0
+                        UnitInfo.Info(n).Positive = -1; % negative Sync for some reason
+                    elseif RHO < 0
+                        UnitInfo.Info(n).Positive = +1;
+                    end
+                else
+                    UnitInfo.Info(n).Positive = 0;
+                end
+                %         toc
+                %     end
+                % end
+                
+                
+                % figure
+                % nreps = 10;
+                % plot(output.raster.spikes,nreps*(output.raster.stim-1)+output.raster.rep,'k.','MarkerSize',9);
+                
+                test = 1 ;
+                Hz_list = [];
+                for i = 1:length(ICI_list)
+                    Hz_list = [Hz_list round(1000/ICI_list(i))];
+                end
+                
+                %         save('model_datasyncP.mat')
+                
+                test;
+                % figure
+                % plot(UnitInfo.Info.Output.rate{1},'linewidth', 2.0)
+                % pause
+                
+                %% plotting figures
+                if plot_figure == 1
+                cmapp = [[0.1 0.7 0.1]; [0.9 0.6 0.1]; [0 0 0]   ];%    [0.26 0.5 0.9]   ]; %; [0.9 0.3 0.26]; ];
+                
+                cmap = colormap(jet(length(ICI_list)+1));
+                figure
+                
+                for p = n
+                    norm_mean = [];
+                    subplot(2,2,[1 3])
+                    
+                    hold off
+                    for n =1:2:length(UnitInfo.Info(p).Output.rate)
+                        plot(UnitInfo.Info(p).Output.rate{n}, 'linewidth', 1.7,'color',cmap(n+1,:),'DisplayName', ...
+                            [num2str(Hz_list(n)) 'Hz'])
+                        hold on
+                        %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
+                    end
+%                     axis([300,1200,0,80]);
+                    legend('show')
+                    title(['// f_DE = ' num2str(UnitInfo.List(p,1))...
+                        '// f_DI = ' num2str(UnitInfo.List(p,2)) ...
+                        '// tau_pE = ' num2str(UnitInfo.List(p,3)) ...
+                        '// tau_pI = ' num2str(UnitInfo.List(p,4))])
+                    set(gca, 'FontSize', 16)
+                    hold on
+                    subplot(2,2,2)
+                    %             shadedErrorBar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error,{'--','Color',cmapp(2,:)})
+                    errorbar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error)
+                    
+                    
+                    hold on
+                    axis([0,50,-5,50]);
+                    subplot(2,2,4)
+                    
+                    plot(Hz_list,UnitInfo.Info(p).Output.VS,'linewidth',2.0);
+                    set(gca, 'FontSize', 16)
+                    axis([0,50,0.5,1]);
+                    %                 hold on
+                    %                 pause
+                    pause(0.1)
+                end
+                end
+                end
+                
             end
         end
-        %         if length(ICI_list) == 12
-        %             new_ICI_list = ICI_list; %(1:end-1);
-        %             new_all_mean_rate_stim = output.mean_discharge_rate.mean(1:end-1);
-        %             %     else
-        %             %         new_ICI_list = ICI_list(4:end);
-        %             %         new_all_mean_rate_stim = all_mean_rate_stim(4:end);
-        %         end
-        new_ICI_list = ICI_list;
-        new_all_mean_rate_stim = output.mean_discharge_rate.mean; %(1:end-1);
-        
-        [RHO,PVAL] = corr(new_ICI_list.',new_all_mean_rate_stim.','Type','Spearman')
-        UnitInfo.Info(n).Rho = RHO;
-        UnitInfo.Info(n).pval = PVAL;
-        if PVAL <0.05
-            if RHO > 0
-                UnitInfo.Info(n).Positive = -1; % negative Sync for some reason
-            elseif RHO < 0
-                UnitInfo.Info(n).Positive = +1;
-            end
-        else
-            UnitInfo.Info(n).Positive = 0;
-        end
-        %         toc
-        %     end
-        % end
-        
-        
-        % figure
-        % nreps = 10;
-        % plot(output.raster.spikes,nreps*(output.raster.stim-1)+output.raster.rep,'k.','MarkerSize',9);
-        
-        test = 1 ;
-        Hz_list = [];
-        for i = 1:length(ICI_list)
-            Hz_list = [Hz_list round(1000/ICI_list(i))];
-        end
-        
-        save('model_datasyncP.mat')
-        
-        test;
-        % figure
-        % plot(UnitInfo.Info.Output.rate{1},'linewidth', 2.0)
-        % pause
-        
-        %% plotting figures
-        
-        cmapp = [[0.1 0.7 0.1]; [0.9 0.6 0.1]; [0 0 0]   ];%    [0.26 0.5 0.9]   ]; %; [0.9 0.3 0.26]; ];
-        
-        cmap = colormap(jet(length(ICI_list)+1));
-        figure
-        
-        for p = n
-            norm_mean = [];
-            subplot(2,2,[1 3])
-            
-            hold off
-            for n =1:2:length(UnitInfo.Info(p).Output.rate)
-                plot(UnitInfo.Info(p).Output.rate{n}, 'linewidth', 1.7,'color',cmap(n+1,:),'DisplayName', ...
-                    [num2str(Hz_list(n)) 'Hz'])
-                hold on
-                %         norm_mean = [norm_mean UnitInfo.Info(p).Output.mean_discharge_rate.mean(n)/Hz_list(n)];
-            end
-                axis([300,1200,0,80]);
-            legend('show')
-            title(['// f_DE = ' num2str(UnitInfo.List(p,1))...
-                '// f_DI = ' num2str(UnitInfo.List(p,2)) ...
-                '// tau_pE = ' num2str(UnitInfo.List(p,3)) ...
-                '// tau_pI = ' num2str(UnitInfo.List(p,4))])
-            set(gca, 'FontSize', 16)
-            hold on
-            subplot(2,2,2)
-            shadedErrorBar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error,{'--','Color',cmapp(2,:)})
-            %     errorbar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error)
-            
-            
-            hold on
-            axis([0,50,-5,50]);
-            subplot(2,2,4)
-            
-            plot(Hz_list,UnitInfo.Info(p).Output.VS,'linewidth',2.0);
-            set(gca, 'FontSize', 16)
-            axis([0,50,0.5,1]);
-            %                 hold on
-            %                 pause
-            pause(0.1)
-        end
-        %             end
-        %         end
     end
 end
+toc
 % test = 1;
 % pause
 
 
-% save('modeldata2.mat',UnitInfo)
+% save('modeldataSP_Noise.mat','UnitInfo')
 % save('modeldata_new2.mat','UnitInfo')
 % load('modeldata2.mat')
 % for n = 1:length(UnitInfo.List)
@@ -228,7 +239,7 @@ end
 test = 1;
 
 
-function out = run_model(IE_delay,E_strength,I_strength,f,f_DE,f_DI)
+function out = run_model(IE_delay,E_strength,I_strength,f,f_DE,f_DI,noise_magnitude,jitt)
 
 global ICI_list
 global pureT
@@ -252,6 +263,8 @@ tau_l = 1e-3;
 % tau_m(2) = 0.01;
 spikes_pooled=[];
 freq = 1000./ICI;
+noise_magnitude = noise_magnitude*1e-8;
+
 
 %Alpha kernel
 t=0:step:(kernel_time_constant*10);
@@ -321,14 +334,18 @@ for r = 1:nb_rep
     for j=1:10  %10 jitter excitatory and inhibitory inputs
         % for i=1:ipi:(stimulus_input_length-(length(kernel)/2))
         p = 0;
+        P_relE = zeros(1,7501);
+        P_relI = zeros(1,7501); % length of probability vectors
         P_relE(1) = P_0;
         P_relI(1) = P_0;
         for i=1:ipi:(stimulus_input_length)
             p = p+1; %Click number (starts with 1)
-            jitter=round(randn(1)/(1000*step)); %1 ms jitter
+            jitter=jitt*round(randn(1)/(1000*step)); %1 ms jitter
             
             if (i+jitter)<1 || (i+jitter)>(length(input)-length(kernel))
                 jitter=1;
+            elseif (i+jitter)>length(P_relE)
+                jitter= 0;
             end
             t0 = i+jitter;
             if i == 1
@@ -402,12 +419,21 @@ for r = 1:nb_rep
     Ge_total = [Ge_total; Ge];
     Gi_total = [Gi_total; Gi];
     Net_excit_total = [Net_excit_total; Ge-Gi];
+    
+    %Add noise to conductance to generate spont rate
+
+    Ge=Ge+noise_magnitude*randn(1,length(Ge));
+    Gi=Gi+noise_magnitude*randn(1,length(Gi));
+    Ge(find(Ge<0))=0;
+    Gi(find(Gi<0))=0;
     [spikes,V]=run_LIFmodel(Ge,Gi,f);
     
     %rate
     rate = zeros(1,1500);
     for st = spikes
-        rate(1,round(st/(step*10))) = rate(1,round(st/(step*10)))+1;
+        if round(st/(step*10))>0 && round(st/(step*10)) <= length(rate)
+            rate(1,round(st/(step*10))) = rate(1,round(st/(step*10)))+1;
+        end
     end
     rate_total = [rate_total ; rate*1000];
     
@@ -609,19 +635,19 @@ Ek = -0.075;
 % V = zeros(1,length(Ge));
 V(1)=Erest;
 
-noise_magnitude=4*1e-8; %default noise level in conductance
+% noise_magnitude=4*1e-8; %default noise level in conductance
 
 %avoid negative conductances
-Ge=Ge+noise_magnitude*randn(1,length(Ge));
-Gi=Gi+noise_magnitude*randn(1,length(Gi));
-Ge(find(Ge<0))=0;
-Gi(find(Gi<0))=0;
+% Ge=Ge+noise_magnitude*randn(1,length(Ge));
+% Gi=Gi+noise_magnitude*randn(1,length(Gi));
+% Ge(find(Ge<0))=0;
+% Gi(find(Gi<0))=0;
 sigma = 0.01    ;
 
 %spike rate adaptation
 Gsra = zeros(1,length(Ge));
-tau_sra = 0.1; %100ms
-delta_sra = 1*1e-9;
+tau_sra = 0.014; %100ms
+delta_sra = 10*1e-9;
 f_sra = 0.998;
 
 %synaptic depression
