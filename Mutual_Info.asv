@@ -46,22 +46,27 @@ bw = 1.4;
 % end
 % 
 
-parfor i = 1:length(bw)
-    Out = MI_amplitude(bw(i),50);
-    for t = 1:4
-        Ind_mean(t,i) = Out.mean{t};
-        Ind_error(t,i) = Out.error{t};
-    end
 
-end
 
-figure
-for t = 1:6
-    errorbar(t,Ind_mean(t,:),Ind_error(t,:))
-    bar(t,Ind_mean(t,:));
-    hold on
-    
-end
+% parfor i = 1:length(bw)
+%     Out = MI_amplitude(bw(i),50);
+%     for t = 1:4
+%         Ind_mean(t,i) = Out.mean{t};
+%         Ind_error(t,i) = Out.error{t};
+%     end
+% 
+% end
+% 
+% figure
+% for t = 1:6
+%     errorbar(t,Ind_mean(t,:),Ind_error(t,:))
+%     bar(t,Ind_mean(t,:));
+%     hold on
+%     
+% end
+
+Out = MI_amplitude(1.5,1)
+
 
 function Out = MI_joint(bw,d)
 %%  Studying FR joint distribution for SyncP SyncN and SyncM neurons. 03/19/2018
@@ -717,10 +722,14 @@ MI_N = [];
 MI_1 = [];
 MI_2 = [];
 
+amp_DR =1;
+
+if amp_DR == 1
 for trial = 1:Ntrial
     disp(trial)
     
     Sample_ind = randsample((1:300),NP);
+    db_ind = db_effect(Sample_ind);
     for n = 1:NP
         for f = 1:10
             DR_P(n,f) = mean(outputP.rates_stim{f}(Sample_ind(n),:)) + db_effect(Sample_ind(n))+randn*0.5;
@@ -731,12 +740,12 @@ for trial = 1:Ntrial
     % Change here to compare different combinations 
     DR1 = DR_P-DR_N;
     DR2 = DR_P+DR_N;
-    DR_P = DR_P - DR_P;
-    DR_N = DR_N - DR_N;
-    InfoP = MI_calc(DR_P,bw);
-    InfoN = MI_calc(DR_N,bw);
-    Info1 = MI_calc(DR1,bw);
-    Info2 = MI_calc(DR2,bw);
+    DR_P = DR_P;
+    DR_N = DR_N;
+    InfoP = MI_calc(DR_P,bw,db_ind);
+    InfoN = MI_calc(DR_N,bw,db_ind);
+    Info1 = MI_calc(DR1,bw,db_ind);
+    Info2 = MI_calc(DR2,bw,db_ind);
     
     MI_P = [MI_P InfoP];
     MI_N = [MI_N InfoN];
@@ -754,44 +763,85 @@ Out.error{1} = std(MI_P);%:*ts(2)/sqrt(Ntrial);
 Out.error{2} = std(MI_N);%;*ts(2)/sqrt(Ntrial);
 Out.error{3} = std(MI_1);%*ts(2)/sqrt(Ntrial);
 Out.error{4} = std(MI_2);%*ts(2)/sqrt(Ntrial);
+else
+end
 
 
+function Info = MI_calc(DR_P,bw,db_ind)
 
-function Info = MI_calc(DR_P,bw)
+SyncPall = reshape(DR_P,[],1);
+[vqKS,xi] = ksdensity(SyncPall,0:0.5: ceil(max(max(DR_P)))-1,'Bandwidth',bw);
 
-    SyncPall = reshape(DR_P,[],1);
-    [vqKS,xi] = ksdensity(SyncPall,0:0.5: ceil(max(max(DR_P)))-1,'Bandwidth',bw);
-    
-    pdfPall = vqKS/sum(vqKS);
-    
-    InfoP = 0;
-    %     figure
-    Hz_list = 8:4:48;
-    pdfP = [];
-    for f= 1:10
+pdfPall = vqKS/sum(vqKS);
+
+InfoP = 0;
+%     figure
+Hz_list = 8:4:48;
+
+pdfP = [];
+
+% MI for repetition rate
+%     for f= 1:10
+%
+%         % %     kernel density
+%         vq2N = ksdensity(DR_P(:,f),xi,'Bandwidth',bw);
+%         %below is common
+%         vq2N(find(vq2N <0)) = 0;
+%         vq2N= [vq2N(2:end) 0];
+%         pdfP(f,:) = vq2N/sum(vq2N);
+%         if mod(f,2) ==1
+%             %         plot(pdfP(f,:),'DisplayName', [num2str(Hz_list(f)) 'Hz'])
+%             hold on
+%         end
+%         for r = 1:length(pdfPall)
+%             if pdfP(f,r) ~=0 && pdfPall(r) ~=0
+%                 InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
+%             end
+%         end
+%     end
+
+
+% MI for amplitude
+
+
         
-        % %     kernel density
-        vq2N = ksdensity(DR_P(:,f),xi,'Bandwidth',bw);
-        %below is common
-        vq2N(find(vq2N <0)) = 0;
-        vq2N= [vq2N(2:end) 0];
-        pdfP(f,:) = vq2N/sum(vq2N);
-        if mod(f,2) ==1
-            %         plot(pdfP(f,:),'DisplayName', [num2str(Hz_list(f)) 'Hz'])
-            hold on
-        end
-        for r = 1:length(pdfPall)
-            if pdfP(f,r) ~=0 && pdfPall(r) ~=0
-                InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
-            end
+new_db_ind = ceil(db_ind/3); % group similar amplitudes together, create 10 categories from initial 30
+db_set = unique(new_db_ind);
+
+
+% find minimum 
+db_min = 100;
+
+for d = 1:length(db_set)
+    if length(find(new_db_ind == db_set(d))) <db_min
+        db_min = length(find(new_db_ind == db_set(d)));
+    end
+end
+    
+
+for d = 1:length(db_set)
+    % %     kernel density
+    vq2N = ksdensity(DR_P(randsample(find(new_db_ind == db_set(d)),db_min),:),xi,'Bandwidth',bw);
+    %below is common
+    vq2N(find(vq2N <0)) = 0;
+    vq2N= [vq2N(2:end) 0];
+    pdfP(f,:) = vq2N/sum(vq2N);
+    if mod(f,2) ==1
+        %         plot(pdfP(f,:),'DisplayName', [num2str(Hz_list(f)) 'Hz'])
+        hold on
+    end
+    for r = 1:length(pdfPall)
+        if pdfP(f,r) ~=0 && pdfPall(r) ~=0
+            InfoP = InfoP + pdfP(f,r)*log2(pdfP(f,r)/pdfPall(r));
         end
     end
-    Info = InfoP/10;
+end
+Info = InfoP/10;
 
 
+%% Analyzing ind ISI 19/03/2018
     
 function ISI_analy()
-%% Analyzing ind ISI 19/03/2018
 
 
 clear all

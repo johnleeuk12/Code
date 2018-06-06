@@ -51,7 +51,7 @@ figure
 plot(UnitInfo.Info(30).Output.mean_discharge_rate.mean)
 
 
-%% 
+%% Puretone
 
 SN = load('med_spk_PT_SN.mat');
 SP = load('med_spk_PT_SP.mat');
@@ -59,6 +59,7 @@ SN.median_spike = SN.median_spike-0.2;
 SP.median_spike = SP.median_spike-0.2;
 
 [p,h,stats] = ranksum(SN.median_spike,SP.median_spike)
+[p,h,stats] = ranksum(SN.median_spike,y)
 data_mean = mean(SN.median_spike);
 data_error = std(SN.median_spike);
 data_mean(2) = mean(SP.median_spike);
@@ -76,11 +77,25 @@ histogram(SN.median_spike,edges)
 hold on
 histogram(SP.median_spike,edges)
 
+
+% model data
+load('puretoneModel.mat');
+mdlSN.spiketime = UnitInfo.Info(3).Output.spiketime{1}(find(UnitInfo.Info(3).Output.spiketime{1}>0));
+mdlSN.spiketime = mdlSN.spiketime(find(mdlSN.spiketime<0.2));
+
+median(mdlSN.spiketime)
+
+mdlSP.spiketime = UnitInfo.Info(2).Output.spiketime{1}(find(UnitInfo.Info(1).Output.spiketime{1}>0));
+mdlSP.spiketime = mdlSP.spiketime(find(mdlSP.spiketime<0.2));
+
+median(mdlSP.spiketime)
+
+
 %% Vector strength robustness 04/06/2018
 
 
 clear all
-load('modeldataSP_Stability.mat')
+load('modeldataSN_Stability.mat')
 
 % noise = 0:2:16;
 noise = 0:10;
@@ -109,10 +124,12 @@ end
 figure
 bar3(mean_VS)
 % ylabel('noise (1e-8nS)')
+ylabel('jitter (ms)')
 xlabel('stim (Hz)')
 zlabel('VS')
-
-set(gca,'YTickLabel',{'0' '2' '4' '6' '8' '10' '12' '14' '16'});
+% 
+% set(gca,'YTickLabel',{'0' '2' '4' '6' '8' '10' '12' '14' '16'});
+set(gca,'YTickLabel',{'0' '1' '2' '3' '4' '5' '6' '7' '8' '9' '10'});
 set(gca,'XTickLabel',{'8' '12' '16' '20' '24' '28' '32' '36' '40' '44' '48'});
 % hold on
 % e = errorbar(noise,mean_Rho,error_Rho,'.','CapSize',18,'LineWidth',2);

@@ -7,8 +7,8 @@ clear all
 
 %% Parameters
 global ICI_list
-ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
-% ICI_list = 5; % Puretone
+% ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+ICI_list = 5; % Puretone
 
  
 global tau_pE tau_pI kernel_time_constant
@@ -28,8 +28,8 @@ E_strength = 4.5; %nS
 I_strength = 8.5; %nS
 % f = 10;
 adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
-adaptation.I = 0;
-PureTone = 0; %1 is on,0 is off
+adaptation.I = 1;
+PureTone = 1; %1 is on,0 is off
 figureon = 1;
     n=0;
 %     figure
@@ -145,8 +145,8 @@ else
     set(gca, 'FontSize', 16)
     hold on
     subplot(2,2,2)
-    shadedErrorBar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error,{'--','Color',cmapp(2,:)})
-    %     errorbar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error)
+%     shadedErrorBar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error,{'--','Color',cmapp(2,:)})
+        errorbar(Hz_list,UnitInfo.Info(p).Output.mean_discharge_rate.mean,UnitInfo.Info(p).Output.mean_discharge_rate.error)
     
     
     hold on
@@ -225,8 +225,8 @@ for r = 1:nb_rep
     E_input=input;
     I_input=input;
 %     delay=round(abs(IE_delay)/(1000*step));
-    for j=1:15  %10 jitter excitatory and inhibitory inputs
-        delay = round(abs((IE_delay-1)+randn(1)*sqrt(0.25))/(1000*step)); % 3/12/2018   adding noize to the delay as shown in Wehr 2003. centered at 4ms. 
+    for j=1:15  %15 jitter excitatory and inhibitory inputs
+        delay = round(abs((IE_delay-1)+randn(1)*sqrt(0.25))/(1000*step)); % 3/12/2018   adding noise to the delay as shown in Wehr 2003. centered at 4ms. 
         p = 0;
         P_relE(1) = P_0E;
         P_relI(1) = P_0I;
@@ -314,6 +314,11 @@ for r = 1:nb_rep
 %         E_input = E_input*E_strength*0.1; %0.1 is a factor to have an onset response similar to 
     end
     
+    %avoid negative conductances
+    Ge=Ge+noise_magnitude*randn(1,length(Ge));
+    Gi=Gi+noise_magnitude*randn(1,length(Gi));
+    Ge(find(Ge<0))=0;
+    Gi(find(Gi<0))=0;
     
 %     test = 1;
     [spikes,V]=run_LIFmodel(Ge,Gi);
@@ -461,11 +466,11 @@ Ek = -0.075;
 
 noise_magnitude=4*1e-8; %default noise level in conductance
 
-%avoid negative conductances
-Ge=Ge+noise_magnitude*randn(1,length(Ge));
-Gi=Gi+noise_magnitude*randn(1,length(Gi));
-Ge(find(Ge<0))=0;
-Gi(find(Gi<0))=0;
+% %avoid negative conductances
+% Ge=Ge+noise_magnitude*randn(1,length(Ge));
+% Gi=Gi+noise_magnitude*randn(1,length(Gi));
+% Ge(find(Ge<0))=0;
+% Gi(find(Gi<0))=0;
 sigma = 0.01    ;
 
 %spike rate adaptation
