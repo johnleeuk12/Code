@@ -2,9 +2,9 @@
 
 clear all
 
-load('modeldataSN_Noise.mat') %load file, SP, SN, Noise, Jitter
-noise = 0:2:16;
-% noise = 0:10; % this is for jitter 
+load('modeldataSN_Jitter.mat') %load file, SP, SN, Noise, Jitter
+% noise = 0:2:16;
+noise = 0:10; % this is for jitter 
 mean_Rho = zeros(1,length(noise));
 error_Rho = zeros(1,length(noise));
 mean_spont = zeros(1,length(noise));
@@ -42,8 +42,8 @@ hold on
 e = errorbar(noise,mean_Rho,error_Rho,'.','CapSize',18,'LineWidth',2);
 e.Color = 'black';
 e.CapSize = 18;
-axis([-2 18 -1.2 1.2]) %for noise
-% axis([-2 12 -1.2 1.2]) % for jitter
+% axis([-2 18 -1.2 1.2]) %for noise
+axis([-2 12 -1.2 1.2]) % for jitter
 
 figure
 errorbar(noise,mean_spont,error_spont);
