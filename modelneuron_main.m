@@ -29,12 +29,12 @@ I_strength = 8.5; %nS
 % f = 10;
 adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
 adaptation.I = 1;
-PureTone = 1; %1 is on,0 is off
+PureTone = 1; %1 is on,0 is off67
 figureon = 1;
     n=0;
 %     figure
 for f_E = 0.1  %[0 0.1 0.2 0.3 0.4]
-    for f_I = 0.1 %[0.1 :0.1 : 0.4]
+    for f_I = 0.4 %[0.1 :0.1 : 0.4]
         for tau_pE =0.15 % 0.05:0.02:0.20
             for tau_pI = 0.10 %0.05:0.02:0.20
 
@@ -100,7 +100,7 @@ for f_E = 0.1  %[0 0.1 0.2 0.3 0.4]
 end
 
 % save('puretoneModel2.mat','UnitInfo') 
-% save('SyncPfMdl.mat','UnitInfo') 
+save('Md_SP_PT_june.mat','UnitInfo') 
 
 if figureon == 1
 Hz_list = [];
@@ -193,7 +193,7 @@ freq2=1/(step*ipi);
 
 %% Modeling Conductance and adaptation.
 
-nb_rep = 30;
+nb_rep = 50;
 E_str(1) = E_strength;
 I_str(1) = I_strength;
 E_strength_mean = [];
@@ -203,6 +203,7 @@ Ge_total = [];
 Gi_total = [];
 Net_excit_total = [];
 raster.stim=[];  raster.rep=[];  raster.spikes=[];
+noise_magnitude=4*1e-8; %default noise level in conductance
 
 %adaptation parameters
 
@@ -400,7 +401,7 @@ discharge_rate.error = ts(2)*SEM;
 
 
 xs = 1:total_time;
-h = 10; %kernal bandwidth. determines the shape of the function
+h = 12; % 10; %kernal bandwidth. determines the shape of the function
 for i = 1:total_time
     ys(i)=gaussian_kern_reg(xs(i),xs,rate_av,h);
 end
@@ -477,7 +478,7 @@ sigma = 0.01    ;
 Gsra = zeros(1,length(Ge));
 % tau_sra = 0.1; %100ms
 % delta_sra = 1e-9;
-delta_sra = 40*1e-9;
+delta_sra = 0*1e-9;
 
 % f_sra = 0.998;
 f_sra = 0.995;
@@ -488,7 +489,8 @@ V(1)=Erest; %Initializing voltage
 % running without spike-rate adaptation. to include this adaptation, change
 % voltage equation.
 while(t<length(Ge))
-    V(t+1)=(-step*( Ge(t)*(V(t)-Ee) + Gi(t)*(V(t)-Ei) + Grest*(V(t)-Erest)+Gsra(t)*(V(t)-Ek) )/C)+V(t) + sigma*randn*sqrt(step); %+Gsra(t)*(V(t)-Ek))/C)
+%     V(t+1)=(-step*( Ge(t)*(V(t)-Ee) + Gi(t)*(V(t)-Ei) + Grest*(V(t)-Erest))/C)+V(t) + sigma*randn*sqrt(step); %+Gsra(t)*(V(t)-Ek))/C)
+ V(t+1)=(-step*( Ge(t)*(V(t)-Ee) + Gi(t)*(V(t)-Ei) + Grest*(V(t)-Erest)+Gsra(t)*(V(t)-Ek) )/C)+V(t) + sigma*randn*sqrt(step); % % if SRA
     Gsra(t+1) = Gsra(t)*f_sra; % + sigma*randn*sqrt(step);
     if V(t+1)>(Erest+0.020) %20 mV above Erest %artificial threshold
         V(t+1)=0.050; %spike to 50 mV

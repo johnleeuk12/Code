@@ -1,7 +1,7 @@
 %% Model robustness 04/06/2018
 
 clear all
-load('modeldataSN_noise.mat')
+load('modeldataSP_noise.mat')
 
 noise = 0:2:16;
 % noise = 0:10;
@@ -42,7 +42,7 @@ hold on
 e = errorbar(noise,mean_Rho,error_Rho,'.','CapSize',18,'LineWidth',2);
 e.Color = 'black';
 e.CapSize = 18;
-axis([-1 11 -1.2 1.2])
+axis([-2 18 -1.2 1.2])
 
 figure
 errorbar(noise,mean_spont,error_spont);
@@ -996,8 +996,8 @@ hold on
 %% plot spikes per click for all neurons
 
 
-% load('SyncN_new.mat')
-load('SyncP_new.mat')
+load('SyncN_new.mat')
+% load('SyncP_new.mat')
 
 % %48Hz adaptation
 % xaxis = [];
@@ -1176,9 +1176,11 @@ yaxis = yaxis(:);
 % Analysis.spearman = zeros(NbNeurons,2);
 
 
-%% Stats
+%% Stats for adaptation
 % 
-[p,h,stats] = ranksum(bin(6,:),bin(8,:))
+
+[h,p] = ttest(bin(8,:))
+[p,h,stats] = ranksum(bin(2,:),bin(6,:))
 % figure
 % scatter(bin(2,:),bin(6,:));
 

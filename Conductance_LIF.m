@@ -4,8 +4,8 @@ function Out = Conductance_LIF()
 
 %% Parameters
 global ICI_list
-% ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]; % [20.8333 25 31.25 41.6667 62.5 125];%[20 30 40 50 60 80 100]; %[250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
-ICI_list = 2; %puretone
+ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333]; % [20.8333 25 31.25 41.6667 62.5 125];%[20 30 40 50 60 80 100]; %[250 125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+% ICI_list = 2; %puretone
 
 IE_delay = 5; %ms
 E_strength = 4.5; %:0.3:4.8; %1.5:0.3:6.; % in nS 3.5 for Sync+
@@ -20,7 +20,7 @@ n = 0;
 %% global puretone
 global pureT
 pureT = 0;
-plot_figure = 1;
+plot_figure = 1 ;
 
 global tau_pE tau_pI
 tau_pE = 0.15;
@@ -35,13 +35,13 @@ kernel_time_constant = 0.005;
 % for tau_pE = 0.15
 
 tic
-for f_DI = 0.6
+for f_DI = 0.9
     %         for kernel_time_constant = [0.005 0.010 0.020 0.040]
     %     for  f_DE = 0.7
-    for f_DE = 0.9
+    for f_DE = 0.6
         %             for tau_pI = 0.10:0.01:0.2
-        for noise = 4 % % noise = 0:2:16;
-            for jitter = 1
+        for noise = 4.5 % % noise = 0:2:16;
+            for jitter = 1 %0:10
                 
                 for trial_nb = 1
                 
@@ -318,7 +318,7 @@ global tau_pE tau_pI
 
 %% Model (Conductance, Spikes etc)
 
-nb_rep = 30;
+nb_rep = 100;
 rate_total= [];
 Ge_total = [];
 Gi_total = [];
@@ -340,12 +340,13 @@ for r = 1:nb_rep
         P_relI(1) = P_0;
         for i=1:ipi:(stimulus_input_length)
             p = p+1; %Click number (starts with 1)
-            jitter=jitt*round(randn(1)/(1000*step)); %1 ms jitter
+            jitter= 17+ jitt*round(randn(1)/(1000*step)); %1 ms jitter
             
             if (i+jitter)<1 || (i+jitter)>(length(input)-length(kernel))
                 jitter=1;
             elseif (i+jitter)>length(P_relE)
-                jitter= 0;
+%                 jitter= 0;
+                jitter= 15 + jitt*round(randn(1)/(1000*step)); %1 ms jitter
             end
             t0 = i+jitter;
             if i == 1
@@ -534,7 +535,7 @@ discharge_rate.error = ts(2)*SEM;
 
 
 xs = 1:total_time;
-h = 10; %kernal bandwidth. determines the shape of the function
+h = 12; %kernal bandwidth. determines the shape of the function
 for i = 1:total_time
     ys(i)=gaussian_kern_reg(xs(i),xs,rate_av,h);
 end
