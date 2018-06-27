@@ -55,10 +55,10 @@ plot(UnitInfo.Info(30).Output.mean_discharge_rate.mean) %test for individual neu
 
 
 clear all
-load('modeldataSN_Jitter.mat')
+load('modeldataSP_Jitter.mat')
 
 % noise = 0:2:16;
-noise = 0:10;
+% noise = 0:10;
 mean_VS = zeros(length(noise),11);
 error_VS = zeros(length(noise),11);
 collect1 = {};
@@ -93,8 +93,8 @@ ylabel('jitter (ms)')
 xlabel('stim (Hz)')
 % zlabel('VS')
 % % 
-% set(gca,'YTickLabel',{'0' '2' '4' '6' '8' '10' '12' '14' '16'});
-set(gca,'YTickLabel',{'0' '1' '2' '3' '4' '5' '6' '7' '8' '9' '10'});
+set(gca,'YTickLabel',{'0' '2' '4' '6' '8' '10' '12' '14' '16'});
+% set(gca,'YTickLabel',{'0' '1' '2' '3' '4' '5' '6' '7' '8' '9' '10'});
 set(gca,'XTickLabel',{'8' '12' '16' '20' '24' '28' '32' '36' '40' '44' '48'});
 % hold on
 % e = errorbar(noise,mean_Rho,error_Rho,'.','CapSize',18,'LineWidth',2);
