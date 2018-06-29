@@ -7,8 +7,8 @@ clear all
 
 %% Parameters
 global ICI_list
-% ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
-ICI_list = 5; % Puretone
+ICI_list = [125 83.3333 62.5 50 41.6667 35.7143 31.25 27.7778 25 22.7273 20.8333];
+% ICI_list = 5; % Puretone
 
  
 global tau_pE tau_pI kernel_time_constant
@@ -27,14 +27,14 @@ IE_delay = 5; %ms
 E_strength = 4.5; %nS
 I_strength = 8.5; %nS
 % f = 10;
-adaptation.E = 1; %adaptation for {E,I} 0 is facilitation, 1 is depression.
+adaptation.E = 0; %adaptation for {E,I} 0 is facilitation, 1 is depression.
 adaptation.I = 1;
-PureTone = 1; %1 is on,0 is off67
-figureon = 1;
+PureTone = 0; %1 is on,0 is off67
+figureon = 0;
     n=0;
 %     figure
-for f_E = 0.1  %[0 0.1 0.2 0.3 0.4]
-    for f_I = 0.4 %[0.1 :0.1 : 0.4]
+for f_E = [0.1 0.2 0.3]
+    for f_I = [0.1 :0.1 : 0.9]
         for tau_pE =0.15 % 0.05:0.02:0.20
             for tau_pI = 0.10 %0.05:0.02:0.20
 
@@ -99,8 +99,8 @@ for f_E = 0.1  %[0 0.1 0.2 0.3 0.4]
     end
 end
 
-% save('puretoneModel2.mat','UnitInfo') 
-save('Md_SP_PT_june.mat','UnitInfo') 
+save('facilitation_Para.mat','UnitInfo') 
+% save('Md_SP_PT_june.mat','UnitInfo') 
 
 if figureon == 1
 Hz_list = [];

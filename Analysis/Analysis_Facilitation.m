@@ -1,7 +1,7 @@
 %% New model data including facilitation.
 %Facilitation. recreate the data file 
 
-load('dataaaaa2.mat')
+load('D:\John_Wanglab\Bendorlab backup\dataaaaa2.mat')
 
 % UnitInfo.List : {f_dE, f_fI, tau_pE, tau_pI, E, I}
 % E and I stays constant.
@@ -15,6 +15,20 @@ for n = 1:length(UnitInfo.List)
     end
     X3(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) = X3(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) + UnitInfo.Info(n).Output.mean_discharge_rate.mean(11);
 end
+
+
+
+% X1 = zeros(length(unique(UnitInfo.List(:,1))),length(unique(UnitInfo.List(:,2)))); % Matrix of Rho depending on adaptation values
+% X3 = X1;
+% for n = 1:length(UnitInfo.List)
+%     if UnitInfo.Info(n).Pval < 0.05
+%         
+%         X1(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) = X1(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) + UnitInfo.Info(n).Rho;
+%     end
+% %     X3(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) = X3(floor(UnitInfo.List(n,1)*10),floor(UnitInfo.List(n,2)*10)) + UnitInfo.Info(n).Output.mean_discharge_rate.mean(11);
+% end
+
+
 
 X1 = X1/(8*8);
 X3 = X3/64;
