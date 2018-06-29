@@ -34,7 +34,9 @@ X1 = X1/(8*8);
 X3 = X3/64;
 
 figure
-imagesc(X1)
+imagesc(-X1)
+colormap(flipud(jet))
+colorbar
 xticks([1:9])
 xticklabels({'0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9'})
 xlabel('f_DI')
